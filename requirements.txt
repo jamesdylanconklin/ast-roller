@@ -1,0 +1,10 @@
+# AWS Lambda Python Dependencies
+# Add your project dependencies here
+
+lark==1.1.9
+pytest==7.4.3
+
+# Common AWS Lambda dependencies (uncomment as needed):
+# boto3>=1.28.0
+# requests>=2.31.0
+# python-json-logger>=2.0.7

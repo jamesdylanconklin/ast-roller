@@ -1,14 +1,19 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
+requires = ["setuptools >= 77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ast_roller"
 version = "0.0.1"
 authors = [
-  { name="Example Author", email="jamesdylanconklin@gmail.com" },
+  { name="James Conklin", email="jamesdylanconklin@gmail.com" },
 ]
 description = "A small example package"
+
+dependencies = [
+    "lark==1.1.9"
+]
+
 # readme = "README.md"
 requires-python = ">=3.12"
 classifiers = [

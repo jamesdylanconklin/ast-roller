@@ -3,7 +3,7 @@ Grammar definition for AST parsing using Lark.
 """
 
 from lark import Transformer, Lark, v_args
-from evaluators import (
+from .evaluators import (
     ListEvaluatorNode, 
     BinaryOpEvaluatorNode, 
     DiceRollEvaluatorNode, 

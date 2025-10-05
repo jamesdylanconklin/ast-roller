@@ -5,7 +5,7 @@ Evaluator node classes for the dice rolling AST.
 import random
 import re
 from abc import ABC, abstractmethod
-from results import ResultNode
+from .results import ResultNode
 
 
 ### EVALUATOR NODES

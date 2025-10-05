@@ -2,35 +2,40 @@ import json
 import logging
 
 # Local imports
-from grammar import GRAMMAR
+from grammar import parser, transformer
+
 
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
 def lambda_handler(event, context):
     """
-    AWS Lambda handler function - Simple echo service
+    AWS Lambda handler function - Dice rolling service
     
     Args:
-        event: The event dict that contains the data sent to the Lambda function
-        context: The context object provides information about the runtime environment
+        event: API Gateway event with body containing:
+               - event['body']['roll_string']: Dice expression (e.g., "6 2d6+6")  
+               - event['body']['options']: Roll configuration options, not supported yet
+        context: Lambda runtime context
         
     Returns:
-        dict: Response object with statusCode and body
+        dict: HTTP response with dice roll results
     """
-    
     try:
         # Log the incoming event
         logger.info(f"Received event: {json.dumps(event)}")
+
+        body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
+
+        roll_string = body.get('roll_string', '') or '1d20'
+        parsed_tree = parser.parse(roll_string)
+        transformed = transformer.transform(parsed_tree)
+        roll_result = transformed.evaluate()
         
         # Echo back the event data
         response_body = {
-            "message": "Echo successful",
-            "received_data": event,
-            "function_name": context.function_name if context else "local-test",
-            "request_id": context.aws_request_id if context else "local-request"
+            "roll_result": roll_result.raw_result
         }
         
         # Return successful response
@@ -44,7 +49,6 @@ def lambda_handler(event, context):
         }
         
     except Exception as e:
-        # Log the error
         logger.error(f"Error processing request: {str(e)}")
         
         # Return error response

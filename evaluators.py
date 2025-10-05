@@ -21,21 +21,6 @@ class EvaluatorNode(ABC):
         """Evaluate this node and return a ResultNode containing the result."""
         pass
 
-
-class RootEvaluatorNode(EvaluatorNode):
-    """Wrapper for top-level expressions - handles final result rounding."""
-    
-    def __init__(self, child):
-        self.child = child
-    
-    def evaluate(self) -> ResultNode:
-        result_tree = self.child.evaluate()
-        if isinstance(result_tree.raw_result, list):
-            return ResultNode(result_tree.raw_result, {'child': result_tree})
-        else:
-          return ResultNode(result_tree.raw_result, {'child': result_tree})
-
-
 class ListEvaluatorNode(EvaluatorNode):
     """Handles list expressions - space-separated values with potential repetition."""
     

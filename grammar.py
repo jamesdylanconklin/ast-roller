@@ -4,7 +4,6 @@ Grammar definition for AST parsing using Lark.
 
 from lark import Transformer, Lark, v_args
 from evaluators import (
-    RootEvaluatorNode, 
     ListEvaluatorNode, 
     BinaryOpEvaluatorNode, 
     DiceRollEvaluatorNode, 
@@ -51,7 +50,7 @@ class CalculateTree(Transformer):
     
     def root_result(self, child):
         """Transform root expression."""
-        return RootEvaluatorNode(child)
+        return child
     
     def list_expression(self, *args):
         """Transform list expression - either single or count+loop."""

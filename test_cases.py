@@ -5,6 +5,11 @@ Test cases for the dice rolling grammar.
 Contains test data separated from test logic for easier maintenance.
 """
 
+# TODO: Test eval by mocking in static results for random.randint.
+# TODO: Once results node logic is fleshed out, set a seed on random.randint for
+#       each run and use snapshot testing between accepted pretty-print output and
+#       tested output
+
 def integer_tree(value):
     """Helper to create an integer parse tree."""
     return Tree('integer', [Token('INTEGER', str(value))])
@@ -17,7 +22,7 @@ def die_tree(count, sides, capitalize=False):
 
 def tree_root(children):
     """Helper to create a root parse tree."""
-    return Tree('start', [list_tree(children)])
+    return Tree('root_result', [list_tree(children)])
 
 def list_tree(elements):
     """Helper to create a list expression parse tree."""

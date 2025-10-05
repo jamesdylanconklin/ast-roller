@@ -6,7 +6,7 @@ import pytest
 from lark import Lark
 from lark.exceptions import LarkError
 
-from grammar import GRAMMAR, parser
+from ast_roller import parser
 from test_cases import BASIC_PARSING_CASES, COMPLEX_CASES, PRECEDENCE_CASES, LIST_EXPRESSION_CASES, SHOULD_FAIL_CASES, EDGE_CASES
 
 def assert_trees_equal(actual, expected, input_str,message=""):

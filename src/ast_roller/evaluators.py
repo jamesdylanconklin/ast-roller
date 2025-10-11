@@ -106,6 +106,9 @@ class DiceRollEvaluatorNode(EvaluatorNode):
         
         count_str, sides_str = match.groups()
         self.num_dice = int(count_str) if count_str else 1
+
+        if self.num_dice <= 0:
+            raise ValueError(f"Number of dice must be positive, got {self.num_dice}")
         
         if sides_str.lower() == 'f':
             self.random_lower = -1
@@ -113,6 +116,9 @@ class DiceRollEvaluatorNode(EvaluatorNode):
         else:
             self.random_lower = 1
             self.random_upper = int(sides_str)
+
+        if self.random_lower == self.random_upper:
+            raise ValueError(f"Die must have more than one side, got {self.random_upper}")
     
     def evaluate(self) -> ResultNode:
         rolls = [random.randint(self.random_lower, self.random_upper) for _ in range(self.num_dice)]

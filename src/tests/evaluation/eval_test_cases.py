@@ -110,7 +110,8 @@ LIST_EVALUATOR_CASES = {
         (DummyEvalNode(3), DummyEvalNode(4), [4, 4, 4]),
         (DummyEvalNode(5), DummyEvalNode(-2.5), [-2, -2, -2, -2, -2]),
         (DummyEvalNode(1), DummyEvalNode(0), [0]),
-        (DummyEvalNode(0), DummyEvalNode(2.5), []), 
+        (DummyEvalNode(0), DummyEvalNode(2.5), []),
+        (DummyEvalNode(-3), DummyEvalNode(10), []), # Special case for negative count at the moment.
     ],
     "n_dimensional": [
         (DummyEvalNode(2), DummyEvalNode(3), DummyEvalNode(4), [[4, 4, 4], [4, 4, 4]]),

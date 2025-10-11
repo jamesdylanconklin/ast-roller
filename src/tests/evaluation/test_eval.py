@@ -162,10 +162,24 @@ class TestListEvaluatorNode:
         mock_l2_node.evaluate.assert_has_calls([call() for _ in result])
         mock_l3_node.evaluate.assert_has_calls([call() for _ in result for _ in result[0]])
 
-    def test_negative_count(self):
-        """Test negative count behavior."""
-        # TODO: Implement
-        pass
+    # TODO: Negative count explicitly allowed and defaulted to 0 right now,
+    # but I'm finding it counter to expectations as an actual user.
+    # def test_negative_count(self):
+    #     """Test negative count behavior."""
+    #     count_node = DummyEvalNode(-3)
+    #     expr_node = DummyEvalNode(5)
+    #     mock_count_node = Mock(wraps=count_node)
+    #     mock_expr_node = Mock(wraps=expr_node)
+
+    #     list_eval_node = ListEvaluatorNode(mock_count_node, mock_expr_node)
+
+    #     # with pytest.raises(ValueError):
+    #     list_eval_node.evaluate()
+  
+    #     mock_count_node.evaluate.assert_called_once()
+    #     mock_expr_node.evaluate.assert_not_called()
+
+
 
 
 if __name__ == "__main__":

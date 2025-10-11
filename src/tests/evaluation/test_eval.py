@@ -132,19 +132,15 @@ class TestListEvaluatorNode:
     @pytest.mark.parametrize("count_node, expr_node, result", LIST_EVALUATOR_CASES['one_dimensional'])
     def test_non_nested_loop_expression(self, count_node, expr_node, result):
         """Test count and loop expression."""
-        mock_count_fn = Mock(wraps=count_node.evaluate)
-        count_node.evaluate = mock_count_fn
-
-        mock_expr_fn = Mock(wraps=expr_node.evaluate)
-        expr_node.evaluate = mock_expr_fn
-
-        list_eval_node = ListEvaluatorNode(count_node, expr_node)
+        mock_count_node = Mock(wraps=count_node)
+        mock_expr_node = Mock(wraps=expr_node)
+        list_eval_node = ListEvaluatorNode(mock_count_node, mock_expr_node)
 
         result_node = list_eval_node.evaluate()
         assert result_node.raw_result == result
-        mock_count_fn.assert_called_once()
+        mock_count_node.evaluate.assert_called_once()
         # Expr evals once per leaf result
-        mock_expr_fn.assert_has_calls([call() for _ in result])
+        mock_expr_node.evaluate.assert_has_calls([call() for _ in result])
 
     @pytest.mark.parametrize("l1_node,l2_node,l3_node,result", LIST_EVALUATOR_CASES['n_dimensional'])
     def test_nested_loop_expression(self, l1_node, l2_node, l3_node, result):
@@ -154,24 +150,17 @@ class TestListEvaluatorNode:
         # Test L3 called once per leaf in results
         # Test L2 called once per size of results
         # Test L1 called once
-        mock_l1_fn = Mock(wraps=l1_node.evaluate)
-        l1_node.evaluate = mock_l1_fn
+        mock_l1_node = Mock(wraps=l1_node)
+        mock_l2_node = Mock(wraps=l2_node)
+        mock_l3_node = Mock(wraps=l3_node)
 
-        mock_l2_fn = Mock(wraps=l2_node.evaluate)
-        l2_node.evaluate = mock_l2_fn
-
-        mock_l3_fn = Mock(wraps=l3_node.evaluate)
-        l3_node.evaluate = mock_l3_fn
-
-        list_eval_node = ListEvaluatorNode(l1_node, ListEvaluatorNode(l2_node, l3_node))
-        combined_mock_fn = Mock(wraps=list_eval_node.evaluate)
-        list_eval_node.evaluate = combined_mock_fn
+        list_eval_node = ListEvaluatorNode(mock_l1_node, ListEvaluatorNode(mock_l2_node, mock_l3_node))
 
         result_node = list_eval_node.evaluate()
         assert result_node.raw_result == result
-        mock_l1_fn.assert_called_once()
-        mock_l2_fn.assert_has_calls([call() for _ in result])
-        mock_l3_fn.assert_has_calls([call() for _ in result for _ in result[0]])
+        mock_l1_node.evaluate.assert_called_once()
+        mock_l2_node.evaluate.assert_has_calls([call() for _ in result])
+        mock_l3_node.evaluate.assert_has_calls([call() for _ in result for _ in result[0]])
 
     def test_negative_count(self):
         """Test negative count behavior."""

@@ -3,59 +3,76 @@ Tests for evaluator node classes.
 """
 
 import pytest
-from unittest.mock import patch, call
+from unittest.mock import patch, call, Mock
 
-from ast_roller.evaluators import DiceRollEvaluatorNode
-from test_cases import DICE_ROLL_CASES
+from ast_roller.evaluators import DiceRollEvaluatorNode, NumberEvaluatorNode, BinaryOpEvaluatorNode, ListEvaluatorNode
+from eval_test_cases import DICE_ROLL_CASES, NUMBER_EVALUATOR_CASES, BINARY_OP_CASES, LIST_EVALUATOR_CASES, DummyEvalNode
 
 mock_random_fn = lambda _, max_val: max_val  # Always return max for testing
 
 class TestNumberEvaluatorNode:
     """Test NumberEvaluatorNode evaluation."""
-    
-    def test_integer_evaluation(self):
+
+    @pytest.mark.parametrize("num_string,num_type,value", NUMBER_EVALUATOR_CASES['valid'])
+    def test_integer_evaluation(self, num_string, num_type, value):
         """Test integer number evaluation."""
-        # TODO: Implement
-        pass
-    
-    def test_float_evaluation(self):
-        """Test float number evaluation."""
-        # TODO: Implement
-        pass
-    
-    def test_natural_number_validation(self):
-        """Test natural number validation (must be positive)."""
-        # TODO: Implement
-        pass
+        node = NumberEvaluatorNode(num_string, num_type)
+        result_node = node.evaluate()
+        assert result_node.raw_result == value
+        # TODO: Type check when resultNode numeric subclass ready.
+
+    @pytest.mark.parametrize("num_string,num_type", NUMBER_EVALUATOR_CASES['invalid'])
+    def test_invalid_handling(self, num_string, num_type):
+        """Test invalid number string raises ValueError."""
+        with pytest.raises(ValueError):
+            node = NumberEvaluatorNode(num_string, num_type)
+            node.evaluate()
 
 
 class TestBinaryOpEvaluatorNode:
     """Test BinaryOpEvaluatorNode evaluation."""
     
-    def test_addition(self):
+    @pytest.mark.parametrize("left_node, right_node, expected", BINARY_OP_CASES['valid']['addition'])
+    def test_addition(self, left_node, right_node, expected):
         """Test addition operation."""
-        # TODO: Implement
-        pass
-    
-    def test_subtraction(self):
+        node = BinaryOpEvaluatorNode(left_node, '+', right_node)
+        result_node = node.evaluate()
+        assert result_node.raw_result == expected
+
+    @pytest.mark.parametrize("left_node, right_node, expected", BINARY_OP_CASES['valid']['subtraction'])
+    def test_subtraction(self, left_node, right_node, expected):
         """Test subtraction operation."""
-        # TODO: Implement
-        pass
+        node = BinaryOpEvaluatorNode(left_node, '-', right_node)
+        result_node = node.evaluate()
+        assert result_node.raw_result == expected
     
-    def test_multiplication(self):
+    @pytest.mark.parametrize("left_node, right_node, expected", BINARY_OP_CASES['valid']['multiplication'])
+    def test_multiplication(self, left_node, right_node, expected):
         """Test multiplication operation."""
-        # TODO: Implement  
-        pass
-    
-    def test_division(self):
+        node = BinaryOpEvaluatorNode(left_node, '*', right_node)
+        result_node = node.evaluate()
+        assert result_node.raw_result == expected
+
+    @pytest.mark.parametrize("left_node, right_node, expected", BINARY_OP_CASES['valid']['division'])
+    def test_division(self, left_node, right_node, expected):
         """Test division operation."""
-        # TODO: Implement
-        pass
-    
-    def test_invalid_operator(self):
+        node = BinaryOpEvaluatorNode(left_node, '/', right_node)
+        result_node = node.evaluate()
+        assert result_node.raw_result == expected
+
+    @pytest.mark.parametrize("operator,left_node,right_node", BINARY_OP_CASES['invalid'])
+    def test_invalid_operator(self, operator, left_node, right_node):
         """Test invalid operator raises ValueError."""
-        # TODO: Implement
-        pass
+        with pytest.raises(ValueError):
+            BinaryOpEvaluatorNode(left_node, operator, right_node).evaluate()
+
+    def test_division_by_zero_passthrough(self):
+        """Test division by zero raises ZeroDivisionError."""
+        left_node = DummyEvalNode(5)
+        right_node = DummyEvalNode(0)
+        node = BinaryOpEvaluatorNode(left_node, '/', right_node)
+        with pytest.raises(ZeroDivisionError):
+            node.evaluate()
 
 
 class TestDiceRollEvaluatorNode:
@@ -99,21 +116,63 @@ class TestDiceRollEvaluatorNode:
 class TestListEvaluatorNode:
     """Test ListEvaluatorNode evaluation."""
     
-    def test_single_expression(self):
+    @pytest.mark.parametrize("eval_node, result", LIST_EVALUATOR_CASES['non_looping'])
+    def test_single_expression(self, eval_node, result):
         """Test single expression (no loop)."""
-        # TODO: Implement
-        pass
-    
-    def test_count_and_loop_expression(self):
+
+        mock_fn = Mock(wraps=eval_node.evaluate)
+        eval_node.evaluate = mock_fn
+
+        list_eval_node = ListEvaluatorNode(None, eval_node)
+
+        result_node = list_eval_node.evaluate()
+        assert result_node.raw_result == result
+        mock_fn.assert_called_once()
+
+    @pytest.mark.parametrize("count_node, expr_node, result", LIST_EVALUATOR_CASES['one_dimensional'])
+    def test_non_nested_loop_expression(self, count_node, expr_node, result):
         """Test count and loop expression."""
-        # TODO: Implement
-        pass
-    
-    def test_zero_count(self):
-        """Test zero count returns empty list."""
-        # TODO: Implement
-        pass
-    
+        mock_count_fn = Mock(wraps=count_node.evaluate)
+        count_node.evaluate = mock_count_fn
+
+        mock_expr_fn = Mock(wraps=expr_node.evaluate)
+        expr_node.evaluate = mock_expr_fn
+
+        list_eval_node = ListEvaluatorNode(count_node, expr_node)
+
+        result_node = list_eval_node.evaluate()
+        assert result_node.raw_result == result
+        mock_count_fn.assert_called_once()
+        # Expr evals once per leaf result
+        mock_expr_fn.assert_has_calls([call() for _ in result])
+
+    @pytest.mark.parametrize("l1_node,l2_node,l3_node,result", LIST_EVALUATOR_CASES['n_dimensional'])
+    def test_nested_loop_expression(self, l1_node, l2_node, l3_node, result):
+        """Test nested count and loop expressions."""
+
+        # Gist: Expand out to List (L1, List(L2, L3))
+        # Test L3 called once per leaf in results
+        # Test L2 called once per size of results
+        # Test L1 called once
+        mock_l1_fn = Mock(wraps=l1_node.evaluate)
+        l1_node.evaluate = mock_l1_fn
+
+        mock_l2_fn = Mock(wraps=l2_node.evaluate)
+        l2_node.evaluate = mock_l2_fn
+
+        mock_l3_fn = Mock(wraps=l3_node.evaluate)
+        l3_node.evaluate = mock_l3_fn
+
+        list_eval_node = ListEvaluatorNode(l1_node, ListEvaluatorNode(l2_node, l3_node))
+        combined_mock_fn = Mock(wraps=list_eval_node.evaluate)
+        list_eval_node.evaluate = combined_mock_fn
+
+        result_node = list_eval_node.evaluate()
+        assert result_node.raw_result == result
+        mock_l1_fn.assert_called_once()
+        mock_l2_fn.assert_has_calls([call() for _ in result])
+        mock_l3_fn.assert_has_calls([call() for _ in result for _ in result[0]])
+
     def test_negative_count(self):
         """Test negative count behavior."""
         # TODO: Implement

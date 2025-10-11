@@ -24,14 +24,14 @@ class EvaluatorNode(ABC):
 class ListEvaluatorNode(EvaluatorNode):
     """Handles list expressions - space-separated values with potential repetition."""
     
-    def __init__(self, count_expr_node, loop_expr_node=None):
+    def __init__(self, count_expr_node, loop_expr_node):
         self.count_expr_node = count_expr_node
         self.loop_expr_node = loop_expr_node
     
     def evaluate(self) -> ResultNode:
-        if self.loop_expr_node is None:
+        if self.count_expr_node is None:
             # Single expression case - just evaluate it
-            result = self.count_expr_node.evaluate()
+            result = self.loop_expr_node.evaluate()
             return ResultNode(int(result.raw_result), result.children)
 
         # Two expression case - count and loop
@@ -73,6 +73,9 @@ class BinaryOpEvaluatorNode(EvaluatorNode):
         self.left = left
         self.operator = operator  # Token like '+', '-', '*', '/'
         self.right = right
+
+        if not all([isinstance(node, EvaluatorNode) for node in [left, right]]):
+            raise ValueError("Left and right operands must be EvaluatorNode instances")
     
     def evaluate(self) -> ResultNode:
         left_result = self.left.evaluate()

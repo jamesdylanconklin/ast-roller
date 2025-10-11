@@ -56,7 +56,7 @@ class CalculateTree(Transformer):
         """Transform list expression - either single or count+loop."""
         if len(args) == 1:
             # Single expression
-            return ListEvaluatorNode(args[0], None)
+            return ListEvaluatorNode(None, args[0])
         else:
             # Count + loop expression (args[1] is LIST_SEP token, args[2] is loop expr)
             return ListEvaluatorNode(args[0], args[2])

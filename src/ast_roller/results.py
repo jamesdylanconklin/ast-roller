@@ -18,9 +18,15 @@ class ResultNode:
     def compact_print(self):
         return f"{self.raw_result}"
 
-    @abstractmethod
-    def traverse(self):
-        pass
+    # TODO: The initial thought was that traversing would support
+    # pretty-printing results. However, I think we need a desired
+    # output format for arbitrary nesting levels before that makes
+    # sense. As is, we define two levels of verbosity and leave it
+    # to structural result nodes to figure out how they want to
+    # print their children.
+    # @abstractmethod
+    # def traverse(self):
+    #     pass
 
     @abstractmethod
     def detailed_print(self, depth, indent):
@@ -39,11 +45,11 @@ class ListResultNode(StructuralResultNode):
         self.count_result_node = count_result_node
         self.expr_result_nodes = expr_result_nodes
 
-    def traverse(self, depth=0):
-        yield (self, depth)
-        yield from self.count_result_node.traverse(depth + 1)
-        for expr_node in self.expr_result_nodes:
-            yield from expr_node.traverse(depth + 1)
+    # def traverse(self, depth=0):
+    #     yield (self, depth)
+    #     yield from self.count_result_node.traverse(depth + 1)
+    #     for expr_node in self.expr_result_nodes:
+    #         yield from expr_node.traverse(depth + 1)
     
     def compact_print(self):
         """Compact print for list result node."""
@@ -90,10 +96,10 @@ class BinaryOpResultNode(StructuralResultNode):
         result_eq = f"{self.left.raw_result} {self.operator} {self.right.raw_result}"
         return (f"{indent * '  '}{raw_eq} => {result_eq} = {self.raw_result}")
 
-    def traverse(self, depth=0):
-        yield (self, depth)
-        yield from self.children['left'].traverse(depth + 1)
-        yield from self.children['right'].traverse(depth + 1)
+    # def traverse(self, depth=0):
+    #     yield (self, depth)
+    #     yield from self.children['left'].traverse(depth + 1)
+    #     yield from self.children['right'].traverse(depth + 1)
 
     
 class LeafResultNode(ResultNode):

@@ -3,6 +3,7 @@
 
 lark==1.1.9
 pytest==7.4.3
+pytest-cov==7.0.0
 setuptools>=65.0.0,<70.0.0
 
 # Common AWS Lambda dependencies (uncomment as needed):

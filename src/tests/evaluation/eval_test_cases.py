@@ -12,7 +12,7 @@ class DummyEvalNode(EvaluatorNode):
         self.value = value
     
     def evaluate(self):
-        return ResultNode(self.value)
+        return ResultNode(self.value, f'Dummy {self.value}')
     
 # Test cases for DiceRollEvaluatorNode
 DICE_ROLL_CASES = {

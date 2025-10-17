@@ -50,13 +50,18 @@ class CalculateTree(Transformer):
     
     def root_result(self, child):
         """Transform root expression."""
-        return child
+        # We pruned single-element list results. 
+        # We actually want one at the root.
+        if isinstance(child, ListEvaluatorNode):
+            return child
+
+        return ListEvaluatorNode(None, child)
     
     def list_expression(self, *args):
         """Transform list expression - either single or count+loop."""
         if len(args) == 1:
             # Single expression
-            return ListEvaluatorNode(None, args[0])
+            return args[0]
         else:
             # Count + loop expression (args[1] is LIST_SEP token, args[2] is loop expr)
             return ListEvaluatorNode(args[0], args[2])

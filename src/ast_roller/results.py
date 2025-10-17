@@ -33,10 +33,17 @@ class StructuralResultNode(ResultNode):
 
 class ListResultNode(StructuralResultNode):
     def __init__(self, count_result_node, expr_result_nodes, raw_result):
-        token = f'{count_result_node.token} {expr_result_nodes[0].token}'
+        expr_token = expr_result_nodes[0].token if expr_result_nodes else '[Expression Not Evaluated]'
+        token = f'{count_result_node.token} {expr_token}'
         super().__init__(raw_result, token, {'count': count_result_node, 'expr_results': expr_result_nodes})
         self.count_result_node = count_result_node
         self.expr_result_nodes = expr_result_nodes
+
+    def traverse(self, depth=0):
+        yield (self, depth)
+        yield from self.count_result_node.traverse(depth + 1)
+        for expr_node in self.expr_result_nodes:
+            yield from expr_node.traverse(depth + 1)
     
     def compact_print(self):
         """Compact print for list result node."""

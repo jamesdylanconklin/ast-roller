@@ -179,8 +179,5 @@ class TestListEvaluatorNode:
     #     mock_count_node.evaluate.assert_called_once()
     #     mock_expr_node.evaluate.assert_not_called()
 
-
-
-
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

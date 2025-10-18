@@ -18,15 +18,9 @@ class ResultNode:
     def compact_print(self):
         return f"{self.raw_result}"
 
-    # TODO: The initial thought was that traversing would support
-    # pretty-printing results. However, I think we need a desired
-    # output format for arbitrary nesting levels before that makes
-    # sense. As is, we define two levels of verbosity and leave it
-    # to structural result nodes to figure out how they want to
-    # print their children.
-    # @abstractmethod
-    # def traverse(self):
-    #     pass
+    @abstractmethod
+    def traverse(self):
+        pass
 
     @abstractmethod
     def detailed_print(self, depth, indent):
@@ -39,17 +33,25 @@ class StructuralResultNode(ResultNode):
 
 class ListResultNode(StructuralResultNode):
     def __init__(self, count_result_node, expr_result_nodes, raw_result):
-        expr_token = expr_result_nodes[0].token if expr_result_nodes else '[Expression Not Evaluated]'
-        token = f'{count_result_node.token} {expr_token}'
-        super().__init__(raw_result, token, {'count': count_result_node, 'expr_results': expr_result_nodes})
         self.count_result_node = count_result_node
         self.expr_result_nodes = expr_result_nodes
+        token = f'{count_result_node.token} {self.expr_result_token()}'
+        super().__init__(raw_result, token, {'count': count_result_node, 'expr_results': expr_result_nodes})
 
-    # def traverse(self, depth=0):
-    #     yield (self, depth)
-    #     yield from self.count_result_node.traverse(depth + 1)
-    #     for expr_node in self.expr_result_nodes:
-    #         yield from expr_node.traverse(depth + 1)
+
+    # In cases where count is zero, we never eval the expr node into a result.
+    def expr_result_token(self):
+        if len(self.expr_result_nodes) > 0:
+            return self.expr_result_nodes[0].token
+        
+        return '[Expression Not Evaluated]'
+
+
+    def traverse(self, depth=0):
+        yield (self, depth)
+        yield from self.count_result_node.traverse(depth + 1)
+        for expr_node in self.expr_result_nodes:
+            yield from expr_node.traverse(depth + 1)
     
     def compact_print(self):
         """Compact print for list result node."""
@@ -62,9 +64,12 @@ class ListResultNode(StructuralResultNode):
         lines = []
         lines.append(f"{indent * '  '}List Expansion: {self.token}")
         lines.append(f"{(indent + 1) * '  '}Count: {self.count_result_node.token} => {self.count_result_node.raw_result}")
-        lines.append(f"{(indent + 1) * '  '}Expression: {self.expr_result_nodes[0].token}")
+        lines.append(f"{(indent + 1) * '  '}Expression: {self.expr_result_token()}")
 
         # I think list expressions are the only one that really need to worry about depth cutoffs.
+
+        if not any(node.raw_result for node in self.expr_result_nodes):
+            return "\n".join(lines)
 
         for expr_node_idx in range(len(self.expr_result_nodes)):
             expr_node = self.expr_result_nodes[expr_node_idx]
@@ -96,10 +101,10 @@ class BinaryOpResultNode(StructuralResultNode):
         result_eq = f"{self.left.raw_result} {self.operator} {self.right.raw_result}"
         return (f"{indent * '  '}{raw_eq} => {result_eq} = {self.raw_result}")
 
-    # def traverse(self, depth=0):
-    #     yield (self, depth)
-    #     yield from self.children['left'].traverse(depth + 1)
-    #     yield from self.children['right'].traverse(depth + 1)
+    def traverse(self, depth=0):
+        yield (self, depth)
+        yield from self.children['left'].traverse(depth + 1)
+        yield from self.children['right'].traverse(depth + 1)
 
     
 class LeafResultNode(ResultNode):

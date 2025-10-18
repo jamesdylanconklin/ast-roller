@@ -23,7 +23,7 @@ class ResultNode:
     # output format for arbitrary nesting levels before that makes
     # sense. As is, we define two levels of verbosity and leave it
     # to structural result nodes to figure out how they want to
-    # print their children.
+    # print their children. Might be useful as test helper?
     # @abstractmethod
     # def traverse(self):
     #     pass
@@ -39,11 +39,22 @@ class StructuralResultNode(ResultNode):
 
 class ListResultNode(StructuralResultNode):
     def __init__(self, count_result_node, expr_result_nodes, raw_result):
-        expr_token = expr_result_nodes[0].token if expr_result_nodes else '[Expression Not Evaluated]'
-        token = f'{count_result_node.token} {expr_token}'
-        super().__init__(raw_result, token, {'count': count_result_node, 'expr_results': expr_result_nodes})
         self.count_result_node = count_result_node
         self.expr_result_nodes = expr_result_nodes
+        token = f'{count_result_node.token} {self.expr_result_token()}'
+        super().__init__(raw_result, token, {'count': count_result_node, 'expr_results': expr_result_nodes})
+
+
+    # In cases where count is zero, we never eval the expr node into a result.
+    def expr_result_token(self):
+        if len(self.expr_result_nodes) > 0:
+            return self.expr_result_nodes[0].token
+
+        # TODO: Better verbiage. Not super clear to user right now
+        # if the zero wasn't evaled or that the dropped expr was
+        # skipped. Latter is true, needs to be more clearly noted.
+        return '[Expression Not Evaluated]'
+
 
     # def traverse(self, depth=0):
     #     yield (self, depth)
@@ -62,9 +73,12 @@ class ListResultNode(StructuralResultNode):
         lines = []
         lines.append(f"{indent * '  '}List Expansion: {self.token}")
         lines.append(f"{(indent + 1) * '  '}Count: {self.count_result_node.token} => {self.count_result_node.raw_result}")
-        lines.append(f"{(indent + 1) * '  '}Expression: {self.expr_result_nodes[0].token}")
+        lines.append(f"{(indent + 1) * '  '}Expression: {self.expr_result_token()}")
 
         # I think list expressions are the only one that really need to worry about depth cutoffs.
+
+        if not any(node.raw_result for node in self.expr_result_nodes):
+            return "\n".join(lines)
 
         for expr_node_idx in range(len(self.expr_result_nodes)):
             expr_node = self.expr_result_nodes[expr_node_idx]

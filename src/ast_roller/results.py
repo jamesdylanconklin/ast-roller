@@ -34,6 +34,26 @@ class StructuralResultNode(ResultNode):
 
     pass
 
+class SequenceResultNode(StructuralResultNode):
+    def __init__(self, expr_result_nodes):
+        raw_result = [node.raw_result for node in expr_result_nodes]
+        token = ', '.join(node.token for node in expr_result_nodes)
+        super().__init__(raw_result, token, {'expr_results': expr_result_nodes})
+        self.expr_result_nodes = expr_result_nodes
+
+    def pretty_print(self, depth=0, indent=0):
+        lines = []
+        lines.append(f"{indent * '  '}Sequence: {self.token}")
+
+        for expr_node_idx in range(len(self.expr_result_nodes)):
+            expr_node = self.expr_result_nodes[expr_node_idx]
+            lines.append(f"{(indent + 1) * '  '}Expression {expr_node_idx}: {expr_node.token} => {expr_node.raw_result}")
+            prefix = f"{(indent + 1) * '  '}{expr_node_idx}: "
+            lines.append(f"{expr_node.pretty_print(depth + 1, len(prefix) // 2)}")
+
+        return "\n".join(lines)
+
+
 class ListResultNode(StructuralResultNode):
     def __init__(self, count_result_node, expr_result_nodes, raw_result):
         self.count_result_node = count_result_node
@@ -73,7 +93,7 @@ class ListResultNode(StructuralResultNode):
         for expr_node_idx in range(len(self.expr_result_nodes)):
             expr_node = self.expr_result_nodes[expr_node_idx]
             prefix = f"{(indent + 1) * '  '}{expr_node_idx}: "
-            if depth > 0:
+            if depth > 1:
                 lines.append(f"{prefix}{expr_node.raw_result}")
             else:
                 lines.append(prefix)
@@ -118,7 +138,7 @@ class BinaryOpResultNode(StructuralResultNode):
 
     # Alternate TODO: has_dice_roll() function on ResultNode to see if we need
     # three-step print (raw => individual dice => fully evaled).
-    def pretty_print(self, _, indent=0):
+    def pretty_print(self, depth=0, indent=0):
         raw_eq = f"({self.left.token} {self.operator} {self.right.token})"
         expanded_dice_eq = self.dice_expansion()
         result_eq = f"{self.left.raw_result} {self.operator} {self.right.raw_result}"
@@ -152,7 +172,7 @@ class NumberResultNode(LeafResultNode):
     """Result node for numeric values."""
 
     def __init__(self, raw_result):
-        super().__init__(raw_result, token=raw_result)
+        super().__init__(raw_result, token=f"{raw_result}")
 
     def pretty_print(self, _, indent):
         return f"{indent * ''}{self.token} => {self.raw_result}"

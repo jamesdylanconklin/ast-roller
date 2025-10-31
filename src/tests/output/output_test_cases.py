@@ -5,14 +5,6 @@ Contains test data for snapshot testing and output verification.
 
 import random
 
-# Seed configurations for reproducible test runs
-RANDOM_SEEDS = {
-    "basic_dice": 42,
-    "complex_expressions": 123,
-    "list_operations": 456,
-    "nested_operations": 789,
-}
-
 SNAPSHOT_CASES = {
     "basic_dice": [
         '3d6',
@@ -43,4 +35,10 @@ SNAPSHOT_CASES = {
         '(d8 + 4 + 2d6) / 2'
 
     ],
+
+    "sequence_expressions": [
+        "1d20+10+d6, d6+5+2d6",
+        "4df + 2, 4dF",
+        "6 2d6+6, 6 3d6, 6 4 d6",
+    ]
 }

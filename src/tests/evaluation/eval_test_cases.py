@@ -10,10 +10,10 @@ class DummyEvalNode(EvaluatorNode):
     """A dummy evaluator node for testing purposes."""
     def __init__(self, value):
         self.value = value
-    
+
     def evaluate(self):
         return ResultNode(self.value, f'Dummy {self.value}')
-    
+
 # Test cases for DiceRollEvaluatorNode
 DICE_ROLL_CASES = {
     "single_die": [
@@ -32,7 +32,7 @@ DICE_ROLL_CASES = {
         ("4dF", {"result": 4, "calls": [(-1, 1), (-1, 1), (-1, 1), (-1, 1)], "raw_results": [1, 1, 1, 1]}),
     ],
     "invalid_dice": [
-        "3d1",     # y = 1 (invalid die size)  
+        "3d1",     # y = 1 (invalid die size)
         "0d6",     # x = 0 (zero dice)
         "3dx",     # y not number or F (invalid die type)
         "ad6",     # x not number (invalid count)
@@ -60,8 +60,8 @@ NUMBER_EVALUATOR_CASES = {
 }
 
 
-# Test cases for BinaryOpEvaluatorNode  
-BINARY_OP_CASES = { 
+# Test cases for BinaryOpEvaluatorNode
+BINARY_OP_CASES = {
   "valid": {
       "addition": [
         (DummyEvalNode(5), DummyEvalNode(3.2), 8.2),
@@ -98,6 +98,17 @@ BINARY_OP_CASES = {
   ]
 }
 
+
+SEQUENCE_EVALUATOR_CASES = {
+    "valid": [
+        ([DummyEvalNode(1), DummyEvalNode(2)], [1, 2]),
+        ([DummyEvalNode(3), DummyEvalNode(4), DummyEvalNode(5)], [3, 4, 5])
+    ],
+    "invalid": [
+        [DummyEvalNode(1)],
+        []
+    ]
+}
 
 # Test cases for ListEvaluatorNode
 LIST_EVALUATOR_CASES = {

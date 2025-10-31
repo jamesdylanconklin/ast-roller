@@ -5,8 +5,8 @@ Tests for evaluator node classes.
 import pytest
 from unittest.mock import patch, call, Mock
 
-from ast_roller.evaluators import DiceRollEvaluatorNode, NumberEvaluatorNode, BinaryOpEvaluatorNode, ListEvaluatorNode
-from eval_test_cases import DICE_ROLL_CASES, NUMBER_EVALUATOR_CASES, BINARY_OP_CASES, LIST_EVALUATOR_CASES, DummyEvalNode
+from ast_roller.evaluators import DiceRollEvaluatorNode, NumberEvaluatorNode, BinaryOpEvaluatorNode, ListEvaluatorNode, SequenceEvaluatorNode
+from eval_test_cases import DICE_ROLL_CASES, NUMBER_EVALUATOR_CASES, BINARY_OP_CASES, LIST_EVALUATOR_CASES, SEQUENCE_EVALUATOR_CASES, DummyEvalNode
 
 mock_random_fn = lambda _, max_val: max_val  # Always return max for testing
 
@@ -31,7 +31,7 @@ class TestNumberEvaluatorNode:
 
 class TestBinaryOpEvaluatorNode:
     """Test BinaryOpEvaluatorNode evaluation."""
-    
+
     @pytest.mark.parametrize("left_node, right_node, expected", BINARY_OP_CASES['valid']['addition'])
     def test_addition(self, left_node, right_node, expected):
         """Test addition operation."""
@@ -45,7 +45,7 @@ class TestBinaryOpEvaluatorNode:
         node = BinaryOpEvaluatorNode(left_node, '-', right_node)
         result_node = node.evaluate()
         assert result_node.raw_result == expected
-    
+
     @pytest.mark.parametrize("left_node, right_node, expected", BINARY_OP_CASES['valid']['multiplication'])
     def test_multiplication(self, left_node, right_node, expected):
         """Test multiplication operation."""
@@ -87,7 +87,7 @@ class TestDiceRollEvaluatorNode:
         assert result_node.raw_result == case_config["result"]
         mock_randint.assert_has_calls([call(*args) for args in case_config["calls"]])
         # TODO: Add assertions for individual die results when ResultsNode Dice subclass ready.
-    
+
     @pytest.mark.parametrize("die_str,case_config", DICE_ROLL_CASES['multiple_dice'])
     @patch('random.randint', side_effect=mock_random_fn)
     def test_multiple_dice_roll(self, mock_randint, die_str, case_config):
@@ -96,7 +96,7 @@ class TestDiceRollEvaluatorNode:
         result_node = node.evaluate()
         assert result_node.raw_result == case_config["result"]
         mock_randint.assert_has_calls([call(*args) for args in case_config["calls"]])
-    
+
     @pytest.mark.parametrize("die_str,case_config", DICE_ROLL_CASES['fudge_dice'])
     @patch('random.randint', side_effect=mock_random_fn)
     def test_fate_dice_roll(self, mock_randint, die_str, case_config):
@@ -105,17 +105,42 @@ class TestDiceRollEvaluatorNode:
         result_node = node.evaluate()
         assert result_node.raw_result == case_config["result"]
         mock_randint.assert_has_calls([call(*args) for args in case_config["calls"]])
-    
+
     @pytest.mark.parametrize("die_str", DICE_ROLL_CASES['invalid_dice'])
     def test_invalid_dice_token(self, die_str):
         """Test invalid dice token raises ValueError."""
         with pytest.raises(ValueError):
             DiceRollEvaluatorNode(die_str)
 
+class TestSequenceEvaluatorNode:
+    """Test SequenceEvaluatorNode evaluation."""
+
+    @pytest.mark.parametrize("children,result", SEQUENCE_EVALUATOR_CASES['valid'])
+    def test_valid_sequence_evaluation(self, children, result):
+        """Test valid sequence expression evaluation."""
+        # Child evaluators should be called exactly once each.
+        mock_fns = []
+        for child in children:
+            mock_fn = Mock(wraps=child.evaluate)
+            child.evaluate = mock_fn
+            mock_fns.append(mock_fn)
+
+        seq_eval_node = SequenceEvaluatorNode(children)
+        result_node = seq_eval_node.evaluate()
+        assert result_node.raw_result == result
+        for mock_fn in mock_fns:
+            mock_fn.assert_called_once()
+
+    @pytest.mark.parametrize("children", SEQUENCE_EVALUATOR_CASES['invalid'])
+    def test_invalid_sequence_evaluation(self, children):
+        """Test invalid sequence expression raises ValueError."""
+        with pytest.raises(ValueError):
+            SequenceEvaluatorNode(children)
+
 
 class TestListEvaluatorNode:
     """Test ListEvaluatorNode evaluation."""
-    
+
     @pytest.mark.parametrize("eval_node, result", LIST_EVALUATOR_CASES['non_looping'])
     def test_single_expression(self, eval_node, result):
         """Test single expression (no loop)."""
@@ -175,7 +200,7 @@ class TestListEvaluatorNode:
 
     #     # with pytest.raises(ValueError):
     #     list_eval_node.evaluate()
-  
+
     #     mock_count_node.evaluate.assert_called_once()
     #     mock_expr_node.evaluate.assert_not_called()
 

@@ -37,6 +37,12 @@ class TestPrettyPrinting:
         output = self.run_test(roll_string, suite_seed)
         snapshot.assert_match(output, 'output.txt')
 
+    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['sequence_expressions'],)
+    def test_sequence_expression_outputs(self,roll_string, snapshot):
+        suite_seed = 90210
+        output = self.run_test(roll_string, suite_seed)
+        snapshot.assert_match(output, 'output.txt')
+
     @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['list_expressions'],) 
     def test_list_expressions_outputs(self, roll_string, snapshot):
         suite_seed = 13579

@@ -5,7 +5,7 @@ Evaluator node classes for the dice rolling AST.
 import random
 import re
 from abc import ABC, abstractmethod
-from .results import ListResultNode, DiceResultNode, NumberResultNode, BinaryOpResultNode, ResultNode
+from .results import SequenceResultNode, ListResultNode, DiceResultNode, NumberResultNode, BinaryOpResultNode, ResultNode
 
 ### EVALUATOR NODES
 
@@ -19,6 +19,16 @@ class EvaluatorNode(ABC):
     def evaluate(self) -> ResultNode:
         """Evaluate this node and return a ResultNode containing the result."""
         pass
+
+class SequenceEvaluatorNode(EvaluatorNode):
+    """Handles sequences of expressions separated by commas."""
+
+    def __init__(self, expr_nodes):
+        self.expr_nodes = expr_nodes  # List of EvaluatorNode instances
+
+    def evaluate(self) -> ListResultNode:
+        results = [expr_node.evaluate() for expr_node in self.expr_nodes]
+        return SequenceResultNode(results)
 
 class ListEvaluatorNode(EvaluatorNode):
     """Handles list expressions - space-separated values with potential repetition."""

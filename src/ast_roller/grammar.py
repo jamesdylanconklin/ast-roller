@@ -4,9 +4,9 @@ Grammar definition for AST parsing using Lark.
 
 from lark import Transformer, Lark, v_args
 from .evaluators import (
-    ListEvaluatorNode, 
-    BinaryOpEvaluatorNode, 
-    DiceRollEvaluatorNode, 
+    ListEvaluatorNode,
+    BinaryOpEvaluatorNode,
+    DiceRollEvaluatorNode,
     NumberEvaluatorNode,
     SequenceEvaluatorNode
 )
@@ -52,7 +52,7 @@ class CalculateTree(Transformer):
     """
     Transforms the parse tree into an evaluable structure.
     """
-    
+
     def start(self, child):
         # We want one of these structural nodes at the root, as they force rounding.
         if isinstance(child, (ListEvaluatorNode, SequenceEvaluatorNode)):
@@ -60,41 +60,41 @@ class CalculateTree(Transformer):
 
         return ListEvaluatorNode(None, child)
 
-    def sequence_expression(self, *args):
+    def sequence_expression(self, *expressions):
         """Transform sequence expression - comma-separated expressions."""
         # Ignore the separator tokens.
-        expr_nodes = [arg for arg in args if hasattr(arg, 'evaluate')]
+        expr_nodes = [expression for expression in expressions if hasattr(arg, 'evaluate')]
 
         return SequenceEvaluatorNode(expr_nodes)
-    
-    def list_expression(self, *args):
+
+    def list_expression(self, expr_left, _sep=None, expr_right=None):
         """Transform list expression - either single or count + loop."""
-        if len(args) == 1:
-            # Single expression
-            return args[0]
-        else:
-            # args should be count_expr, sep_token, loop_expr. Ignore the middle.
-            return ListEvaluatorNode(args[0], args[2])
+
+        if expr_right is None:
+            # Single expression case
+            return ListEvaluatorNode(None, expr_left)
+
+        return ListEvaluatorNode(expr_left, expr_right)
 
     def parens(self, inner):
         """Transform parentheses - just return inner expression (prune)."""
         return inner
-    
+
     def binary_op_as(self, left, op_token, right):
         return BinaryOpEvaluatorNode(left, str(op_token), right)
-    
-    # Alias for multiplication/division 
+
+    # Alias for multiplication/division
     binary_op_md = binary_op_as
-    
+
     def dice_roll(self, dice_token, directives):
         return DiceRollEvaluatorNode(dice_token, directives.children)
-    
+
     def float(self, token):
         return NumberEvaluatorNode(token, 'float')
-    
+
     def integer(self, token):
         return NumberEvaluatorNode(token, 'integer')
-    
+
     def natural_num(self, token):
         return NumberEvaluatorNode(token, 'natural_num')
 

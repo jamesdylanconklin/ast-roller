@@ -5,6 +5,7 @@ Evaluator node classes for the dice rolling AST.
 import random
 import re
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from .results import SequenceResultNode, ListResultNode, DiceResultNode, NumberResultNode, BinaryOpResultNode, ResultNode
 
 ### EVALUATOR NODES
@@ -100,14 +101,16 @@ class BinaryOpEvaluatorNode(EvaluatorNode):
 class DiceRollEvaluatorNode(EvaluatorNode):
     """Handles dice roll expressions like '3d6' or 'd20'."""
     
-    def __init__(self, dice_token):
-        self.dice_token = dice_token  # The DICE_ROLL token
-        
+    def __init__(self, dice_token, directives):
+        self.dice_token = str(dice_token)
+        self.directive_tokens = [str(d) for d in directives]
+        self.directives = self.parse_directives() 
+
         # Parse the dice token (e.g., "3d6", "d20", "4dF")
-        match = re.match(r'(\d*)d(\d+|[Ff])', str(dice_token))
+        match = re.match(r'(\d*)d(\d+|[Ff])', self.dice_token)
         if not match:
-            raise ValueError(f"Invalid dice token: {dice_token}")
-        
+            raise ValueError(f"Invalid dice token: {self.dice_token}")
+
         count_str, sides_str = match.groups()
         self.num_dice = int(count_str) if count_str else 1
 
@@ -123,13 +126,69 @@ class DiceRollEvaluatorNode(EvaluatorNode):
 
         if self.random_lower == self.random_upper:
             raise ValueError(f"Die must have more than one side, got {self.random_upper}")
+
+    def combined_token(self):
+        return f"{' '.join([self.dice_token, *self.directive_tokens])}"
+
+    def parse_directives(self):
+        directives = { 'drop': {}, 'keep': {} }
+        directive_pattern = re.compile(r'^(?P<keep_drop>[kd])(?P<high_low>[hl])(?P<count>\d+)')
+
+        for token in self.directive_tokens:
+            match = directive_pattern.match(token)
+            if not match:
+                raise ValueError(f"Invalid dice roll directive: {token}")
+            keep_drop = { 'k': 'keep', 'd': 'drop' }[match.group('keep_drop').lower()]
+            high_low = {'h': 'high', 'l': 'low' }[match.group('high_low').lower()]
+            count = int(match.group('count'))
+
+            directives[keep_drop][high_low] = count
+
+        if len(directives['keep']) > 1:
+            raise ValueError("Cannot have both keep high and keep low directives")
+
+        return directives
     
+    def apply_directives(self, rolls):
+        to_keep, to_drop = defaultdict(int), defaultdict(int)
+
+        sorted_rolls = sorted(rolls)
+
+        left_idx = 0
+        right_idx = len(sorted_rolls)
+
+        for high_low, count in self.directives['drop'].items():
+            if high_low == 'high':
+                for roll in sorted_rolls[-count:]:
+                    to_drop[roll] += 1
+                right_idx -= count
+            else:
+                for roll in sorted_rolls[:count]:
+                    to_drop[roll] += 1
+                left_idx += count
+        # Should only be one of these, but the unpacking and parallels to above is friendlier.
+        for high_low, count in self.directives['keep'].items():
+            if high_low == 'high':
+                for roll in sorted_rolls[right_idx - count : right_idx]:
+                    to_keep[roll] += 1
+            else:
+                for roll in sorted_rolls[left_idx : left_idx + count]:
+                    to_keep[roll] += 1
+
+        result = sum(sorted_rolls[left_idx:right_idx])
+        if to_keep:
+            result = sum([die * count for die, count in to_keep.items()])
+
+        return result, to_keep, to_drop
+
     def evaluate(self) -> DiceResultNode:
         rolls = [random.randint(self.random_lower, self.random_upper) for _ in range(self.num_dice)]
         
-        # Rolls aren't actually children - we'll need another init arg when we create the RollResultNode subclass
-        return DiceResultNode(self.dice_token, sum(rolls), rolls)
-    
+        # Apply directives
+        result, to_keep, to_drop = self.apply_directives(rolls)
+
+        return DiceResultNode(self.combined_token(), result, rolls, to_keep=to_keep, to_drop=to_drop)
+
 
 class NumberEvaluatorNode(EvaluatorNode):
     """Handles numeric literals (integers, floats, natural numbers)."""

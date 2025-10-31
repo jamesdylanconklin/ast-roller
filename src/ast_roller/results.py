@@ -3,6 +3,7 @@ Result node classes for the dice rolling evaluation system.
 """
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 
 class ResultNode:
     """
@@ -161,12 +162,37 @@ class LeafResultNode(ResultNode):
 
 class DiceResultNode(LeafResultNode):
     """Result node for dice rolls, storing individual die results."""
-    def __init__(self, roll_string, raw_result, die_results):
+    def __init__(self, roll_string, raw_result, die_results, to_keep={}, to_drop={}):
         super().__init__(raw_result, token=roll_string)
         self.die_results = die_results  # List of individual die roll results
+        self.to_keep = to_keep
+        self.to_drop = to_drop
 
-    def pretty_print(self, _, indent):
-        return f"{indent * '  '}{self.token} => {self.die_results} = {self.raw_result}"
+    def format_die_results(self):
+        dropped, kept = defaultdict(int), defaultdict(int)
+
+        green_start = '\033[92m'
+        red_start = '\033[91m'
+        color_end = '\033[0m'
+
+        formatted_results = []
+        for die in self.die_results:
+            if self.to_drop[die] > dropped[die]:
+                formatted_results.append(f"{red_start}{die}{color_end}")
+                dropped[die] += 1
+            elif self.to_keep[die] > kept[die]:
+                formatted_results.append(f"{green_start}{die}{color_end}")
+                kept[die] += 1
+            else:
+                formatted_results.append(f"{die}")
+        return '[' + ', '.join(formatted_results) + ']'
+
+    def pretty_print(self, _, indent, colorize=True):
+        formatted_results = self.die_results
+        if colorize:
+            formatted_results = self.format_die_results()
+
+        return f"{indent * '  '}{self.token} => {formatted_results} = {self.raw_result}"
 
 class NumberResultNode(LeafResultNode):
     """Result node for numeric values."""

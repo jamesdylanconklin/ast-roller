@@ -16,19 +16,21 @@ from .evaluators import (
 
 # TODO: Support comma separated expression sequences
 
-GRAMMAR = """
+GRAMMAR = r"""
 start: (list_expression | sequence_expression)
 sequence_expression: list_expression (SEQUENCE_SEP list_expression)+
 list_expression: (expression | expression LIST_SEP list_expression)
 expression: "(" expression ")" -> parens
           | expression OPERATOR_AS expression -> binary_op_as
           | expression OPERATOR_MD expression -> binary_op_md
-          | DICE_ROLL -> dice_roll
+          | DICE_ROLL dice_roll_directives -> dice_roll
           | FLOAT -> float
           | NATURAL_NUM -> natural_num
           | INTEGER -> integer
 
+dice_roll_directives: DICE_ROLL_DIRECTIVE*
 DICE_ROLL: /([1-9]\d*)?d([1-9]\d*|[Ff])/i
+DICE_ROLL_DIRECTIVE: /[kd][hl]\d+/i
 OPERATOR_AS: "+" | "-"
 OPERATOR_MD: "*" | "/"
 FLOAT: /-?\d*\.\d+/
@@ -79,22 +81,19 @@ class CalculateTree(Transformer):
         return inner
     
     def binary_op_as(self, left, op_token, right):
-        """Transform addition/subtraction operations."""
         return BinaryOpEvaluatorNode(left, str(op_token), right)
     
     # Alias for multiplication/division 
     binary_op_md = binary_op_as
     
-    def dice_roll(self, dice_token):
+    def dice_roll(self, dice_token, directives):
         """Transform dice roll."""
-        return DiceRollEvaluatorNode(dice_token)
+        return DiceRollEvaluatorNode(dice_token, directives.children)
     
     def float(self, token):
-        """Transform float number."""
         return NumberEvaluatorNode(token, 'float')
     
     def integer(self, token):
-        """Transform integer."""
         return NumberEvaluatorNode(token, 'integer')
     
     def natural_num(self, token):

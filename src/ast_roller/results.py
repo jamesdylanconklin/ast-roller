@@ -52,7 +52,6 @@ class SequenceResultNode(StructuralResultNode):
             if depth > 0:
                 lines.append(f"{prefix}{expr_node.raw_result}")
             else:
-                lines.append(prefix)
                 lines.append(f"{expr_node.pretty_print(depth + 1, len(prefix) // 2)}")
 
         return "\n".join(lines)

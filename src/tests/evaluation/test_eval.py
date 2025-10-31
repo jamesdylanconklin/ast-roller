@@ -10,6 +10,17 @@ from eval_test_cases import DICE_ROLL_CASES, NUMBER_EVALUATOR_CASES, BINARY_OP_C
 
 mock_random_fn = lambda _, max_val: max_val  # Always return max for testing
 
+class RollingRandom:
+    """Helper class to incrementally return increasing random values for testing."""
+    def __init__(self):
+        self.current = 0
+
+    def randint(self, min_val, max_val):
+        result = self.current % (max_val - min_val + 1) + min_val
+        self.current += 1
+        return result
+
+
 class TestNumberEvaluatorNode:
     """Test NumberEvaluatorNode evaluation."""
 
@@ -111,6 +122,16 @@ class TestDiceRollEvaluatorNode:
         """Test invalid dice token raises ValueError."""
         with pytest.raises(ValueError):
             DiceRollEvaluatorNode(die_str)
+
+    @pytest.mark.parametrize("die_str,directives,case_config", DICE_ROLL_CASES['keep_drop'])
+    @patch('random.randint')
+    def test_keep_drop_dice_roll(self, mock_randint, die_str, directives, case_config):
+        """Test dice rolls with keep/drop directives."""
+        mock_randint.side_effect = RollingRandom().randint
+        node = DiceRollEvaluatorNode(die_str, directives)
+        result_node = node.evaluate()
+        assert result_node.raw_result == case_config["result"]
+        mock_randint.assert_has_calls([call(*args) for args in case_config["calls"]])
 
 class TestSequenceEvaluatorNode:
     """Test SequenceEvaluatorNode evaluation."""

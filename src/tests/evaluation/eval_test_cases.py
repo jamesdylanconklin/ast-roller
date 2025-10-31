@@ -38,7 +38,13 @@ DICE_ROLL_CASES = {
         "ad6",     # x not number (invalid count)
         "2d",      # missing die size
         "d",       # incomplete dice format
-    ]
+    ],
+    "keep_drop": [
+        ("4d6", ["dl1"], {"result": 9, "calls": 4 * [(1, 6)], "raw_results": [1, 2, 3, 4]}),
+        ("5d8", ["kh3"], {"result": 12, "calls": 5 * [(1, 8)], "raw_results": [1, 2, 3, 4, 5]}),
+        ("6d10", ["dh2"], {"result": 10, "calls": 6 * [(1, 10)], "raw_results": [1, 2, 3, 4, 5, 6]}),
+        ("4dF", ["kl2"], {"result": -2, "calls": 4 * [(-1, 1)], "raw_results": [-1, 0, 1, -1]}),
+    ],
 }
 
 # Test cases for NumberEvaluatorNode

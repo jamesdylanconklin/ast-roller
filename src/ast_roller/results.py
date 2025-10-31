@@ -176,7 +176,7 @@ class NumberResultNode(LeafResultNode):
     """Result node for numeric values."""
 
     def __init__(self, raw_result):
-        super().__init__(raw_result, token=raw_result)
+        super().__init__(raw_result, token=f"{raw_result}")
 
     def pretty_print(self, _, indent):
         return f"{indent * ''}{self.token} => {self.raw_result}"

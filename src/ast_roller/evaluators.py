@@ -5,8 +5,7 @@ Evaluator node classes for the dice rolling AST.
 import random
 import re
 from abc import ABC, abstractmethod
-from .results import ResultNode
-
+from .results import ListResultNode, DiceResultNode, NumberResultNode, BinaryOpResultNode, ResultNode
 
 ### EVALUATOR NODES
 
@@ -24,15 +23,15 @@ class EvaluatorNode(ABC):
 class ListEvaluatorNode(EvaluatorNode):
     """Handles list expressions - space-separated values with potential repetition."""
     
-    def __init__(self, count_expr_node, loop_expr_node=None):
+    def __init__(self, count_expr_node, loop_expr_node):
         self.count_expr_node = count_expr_node
         self.loop_expr_node = loop_expr_node
     
-    def evaluate(self) -> ResultNode:
-        if self.loop_expr_node is None:
+    def evaluate(self) -> ListResultNode:
+        if self.count_expr_node is None:
+            expr_result_node = self.loop_expr_node.evaluate()
             # Single expression case - just evaluate it
-            result = self.count_expr_node.evaluate()
-            return ResultNode(int(result.raw_result), result.children)
+            return ListResultNode(NumberResultNode(1), [expr_result_node], int(expr_result_node.raw_result))
 
         # Two expression case - count and loop
         count_result = self.count_expr_node.evaluate()
@@ -40,12 +39,10 @@ class ListEvaluatorNode(EvaluatorNode):
         
         # TODO: Consider error for negative count.
         if count <= 0:
-            return ResultNode([], {'count_result': count_result})
+            return ListResultNode(count_result, [],[])
         
         # Evaluate the loop expression count times
         loop_results = [self.loop_expr_node.evaluate() for _ in range(count)]
-        
-        
         
         # Extract raw results for the array
         raw_results = [r.raw_result for r in loop_results]
@@ -55,12 +52,7 @@ class ListEvaluatorNode(EvaluatorNode):
             for i in range(len(raw_results)):
                 raw_results[i] = int(raw_results[i])
 
-
-        # All child result nodes: count result + all loop results
-        return ResultNode(raw_results, {
-            'count_result': count_result,
-            'loop_results': loop_results
-        })
+        return ListResultNode(count_result, loop_results, raw_results)
 
 
 class BinaryOpEvaluatorNode(EvaluatorNode):
@@ -73,8 +65,11 @@ class BinaryOpEvaluatorNode(EvaluatorNode):
         self.left = left
         self.operator = operator  # Token like '+', '-', '*', '/'
         self.right = right
+
+        if not all([hasattr(node, 'evaluate') for node in [left, right]]):
+            raise ValueError("Left and right operands must expose evaluate functions")
     
-    def evaluate(self) -> ResultNode:
+    def evaluate(self) -> BinaryOpResultNode:
         left_result = self.left.evaluate()
         right_result = self.right.evaluate()
         
@@ -87,10 +82,7 @@ class BinaryOpEvaluatorNode(EvaluatorNode):
         elif self.operator == '/':
             value = left_result.raw_result / right_result.raw_result
         
-        return ResultNode(value, {
-            'left': left_result,
-            'right': right_result
-        })
+        return BinaryOpResultNode(self.operator, left_result, right_result, value)
 
 
 class DiceRollEvaluatorNode(EvaluatorNode):
@@ -106,6 +98,9 @@ class DiceRollEvaluatorNode(EvaluatorNode):
         
         count_str, sides_str = match.groups()
         self.num_dice = int(count_str) if count_str else 1
+
+        if self.num_dice <= 0:
+            raise ValueError(f"Number of dice must be positive, got {self.num_dice}")
         
         if sides_str.lower() == 'f':
             self.random_lower = -1
@@ -113,12 +108,15 @@ class DiceRollEvaluatorNode(EvaluatorNode):
         else:
             self.random_lower = 1
             self.random_upper = int(sides_str)
+
+        if self.random_lower == self.random_upper:
+            raise ValueError(f"Die must have more than one side, got {self.random_upper}")
     
-    def evaluate(self) -> ResultNode:
+    def evaluate(self) -> DiceResultNode:
         rolls = [random.randint(self.random_lower, self.random_upper) for _ in range(self.num_dice)]
         
         # Rolls aren't actually children - we'll need another init arg when we create the RollResultNode subclass
-        return ResultNode(sum(rolls), {}) 
+        return DiceResultNode(self.dice_token, sum(rolls), rolls)
     
 
 class NumberEvaluatorNode(EvaluatorNode):
@@ -128,7 +126,7 @@ class NumberEvaluatorNode(EvaluatorNode):
         self.number_token = number_token
         self.number_type = number_type  # 'integer', 'float', 'natural_num'
     
-    def evaluate(self) -> ResultNode:
+    def evaluate(self) -> NumberResultNode:
         if self.number_type == 'float':
             value = float(self.number_token)
         elif self.number_type == 'integer':
@@ -140,4 +138,4 @@ class NumberEvaluatorNode(EvaluatorNode):
         else:
             raise ValueError(f"Unknown number type: {self.number_type}")
         
-        return ResultNode(value, {})
+        return NumberResultNode(value)

@@ -102,6 +102,7 @@ class BinaryOpResultNode(StructuralResultNode):
             left_expansion = self.left.dice_expansion()
         elif hasattr(self.left, 'die_results'):
             left_expansion = f"{self.left.die_results}"
+
         right_expansion = self.right.token
         if hasattr(self.right, 'dice_expansion'):
             right_expansion = self.right.dice_expansion()
@@ -135,8 +136,8 @@ class BinaryOpResultNode(StructuralResultNode):
 class LeafResultNode(ResultNode):
     """Result node for leaf values like numbers and dice rolls."""
 
-    def traverse(self, depth=0):
-        yield (self, depth)
+    # def traverse(self, depth=0):
+    #     yield (self, depth)
 
 class DiceResultNode(LeafResultNode):
     """Result node for dice rolls, storing individual die results."""

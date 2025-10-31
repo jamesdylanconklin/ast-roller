@@ -142,7 +142,7 @@ class BinaryOpResultNode(StructuralResultNode):
 
     # Alternate TODO: has_dice_roll() function on ResultNode to see if we need
     # three-step print (raw => individual dice => fully evaled).
-    def pretty_print(self, _, indent=0):
+    def pretty_print(self, depth=0, indent=0):
         raw_eq = f"({self.left.token} {self.operator} {self.right.token})"
         expanded_dice_eq = self.dice_expansion()
         result_eq = f"{self.left.raw_result} {self.operator} {self.right.raw_result}"

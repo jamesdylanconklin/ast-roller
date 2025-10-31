@@ -10,6 +10,9 @@ SNAPSHOT_CASES = {
         '3d6',
         'd20',
         '4dF',
+        '4d6 dl1',
+        '2d20 kh1',
+        '10d10 dh2 kl2',
     ],
     "arithmetic_operations": [
         '3 * 4',
@@ -32,8 +35,8 @@ SNAPSHOT_CASES = {
         '1d4 + 2 6 2d6+6',
         '2 (1d4 + 2) * 3',
         '2 2 1.5*(d8 + 4 + 2d6)',
-        '(d8 + 4 + 2d6) / 2'
-
+        '(d8 + 4 + 2d6) / 2',
+        'd20 kh1 + 5'
     ],
 
     "sequence_expressions": [

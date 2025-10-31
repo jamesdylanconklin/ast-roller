@@ -24,32 +24,32 @@ class TestPrettyPrinting:
             error_str += (f"\tSnapshot: {snapshot}")
             raise AssertionError(error_str) from e
 
-    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['basic_dice'],)
+    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['basic_dice'])
     def test_basic_dice_outputs(self, roll_string, snapshot):
         suite_seed = 42
         output = self.run_test(roll_string, suite_seed)
         snapshot.assert_match(output, 'output.txt')
 
 
-    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['arithmetic_operations'],)
+    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['arithmetic_operations'])
     def test_arithmetic_operations_outputs(self, roll_string, snapshot):
         suite_seed = 24752
         output = self.run_test(roll_string, suite_seed)
         snapshot.assert_match(output, 'output.txt')
 
-    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['sequence_expressions'],)
+    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['sequence_expressions'])
     def test_sequence_expression_outputs(self,roll_string, snapshot):
         suite_seed = 90210
         output = self.run_test(roll_string, suite_seed)
         snapshot.assert_match(output, 'output.txt')
 
-    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['list_expressions'],) 
+    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['list_expressions'])
     def test_list_expressions_outputs(self, roll_string, snapshot):
         suite_seed = 13579
         output = self.run_test(roll_string, suite_seed)
         snapshot.assert_match(output, 'output.txt')
 
-    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['complex_expressions'],)
+    @pytest.mark.parametrize("roll_string", SNAPSHOT_CASES['complex_expressions'])
     def test_complex_expressions_outputs(self, roll_string, snapshot):
         suite_seed = 24886
         output = self.run_test(roll_string, suite_seed)

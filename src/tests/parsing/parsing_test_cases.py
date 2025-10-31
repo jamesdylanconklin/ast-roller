@@ -20,11 +20,13 @@ def number_tree(value):
 
 	return Tree(num_type, [Token(num_type.upper(), str(value))])
 
-def die_tree(count, sides):
+def die_tree(count, sides, directives=[]):
 	"""Helper to create a dice roll parse tree."""
 	count_str = count if count is not None else ''
 
-	return Tree('dice_roll', [(Token('DICE_ROLL', f'{count_str}d{sides}'))])
+	directives_subtree = Tree('dice_roll_directives', [Token('DICE_ROLL_DIRECTIVE', dir_str) for dir_str in directives])
+
+	return Tree('dice_roll', [(Token('DICE_ROLL', f'{count_str}d{sides}')), directives_subtree])
 
 def tree_root(children):
 	"""Helper to create a root parse tree."""

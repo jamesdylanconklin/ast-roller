@@ -101,7 +101,7 @@ class BinaryOpEvaluatorNode(EvaluatorNode):
 class DiceRollEvaluatorNode(EvaluatorNode):
     """Handles dice roll expressions like '3d6' or 'd20'."""
     
-    def __init__(self, dice_token, directives):
+    def __init__(self, dice_token, directives=[]):
         self.dice_token = str(dice_token)
         self.directive_tokens = [str(d) for d in directives]
         self.directives = self.parse_directives() 

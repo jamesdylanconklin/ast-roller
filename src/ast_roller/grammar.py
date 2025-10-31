@@ -63,7 +63,7 @@ class CalculateTree(Transformer):
     def sequence_expression(self, *expressions):
         """Transform sequence expression - comma-separated expressions."""
         # Ignore the separator tokens.
-        expr_nodes = [expression for expression in expressions if hasattr(arg, 'evaluate')]
+        expr_nodes = [expression for expression in expressions if hasattr(expression, 'evaluate')]
 
         return SequenceEvaluatorNode(expr_nodes)
 
@@ -72,7 +72,7 @@ class CalculateTree(Transformer):
 
         if expr_right is None:
             # Single expression case
-            return ListEvaluatorNode(None, expr_left)
+            return expr_left
 
         return ListEvaluatorNode(expr_left, expr_right)
 

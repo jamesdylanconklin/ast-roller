@@ -52,7 +52,11 @@ class CalculateTree(Transformer):
     """
     
     def start(self, child):
-        return child
+        # We want one of these structural nodes at the root, as they force rounding.
+        if isinstance(child, (ListEvaluatorNode, SequenceEvaluatorNode)):
+            return child
+
+        return ListEvaluatorNode(None, child)
 
     def sequence_expression(self, *args):
         """Transform sequence expression - comma-separated expressions."""

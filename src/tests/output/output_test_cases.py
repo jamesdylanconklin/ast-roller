@@ -13,36 +13,34 @@ RANDOM_SEEDS = {
     "nested_operations": 789,
 }
 
-# Test cases for snapshot testing - input expressions and expected output structure
 SNAPSHOT_CASES = {
-    "basic_dice_rolls": [
-        # "expression_string": "expected_snapshot_filename"
-        # TODO: Add basic dice roll expressions
+    "basic_dice": [
+        '3d6',
+        'd20',
+        '4dF',
     ],
-    
     "arithmetic_operations": [
-        # TODO: Add arithmetic with dice expressions
+        '3 * 4',
+        '4+2',
+        '0 - 10',
+        '20 / 5',
+        '29',
     ],
-    
+
     "list_expressions": [
-        # TODO: Add list/repetition expressions
+        '1d6',
+        '6 3d6',
+        '4 0 d8',
+        '5 5 d5',
+        '5 5', # Forcing NumberResult.pretty_print, mostly.
     ],
-    
-    "complex_nested": [
-        # TODO: Add complex nested expressions
-    ]
+
+    "complex_expressions": [
+        '3 * (4 + 5)',
+        '1d4 + 2 6 2d6+6',
+        '2 (1d4 + 2) * 3',
+        '2 2 1.5*(d8 + 4 + 2d6)',
+        '(d8 + 4 + 2d6) / 2'
+
+    ],
 }
-
-# Pretty-print formatting test cases
-PRETTY_PRINT_CASES = {
-    # TODO: Add test cases for different pretty-print formats
-    # "format_style": [(result_node, expected_output), ...]
-}
-
-
-def setup_seed_for_case(case_name):
-    """Helper to set up deterministic random seed for test case."""
-    if case_name in RANDOM_SEEDS:
-        random.seed(RANDOM_SEEDS[case_name])
-    else:
-        random.seed(42)  # Default seed

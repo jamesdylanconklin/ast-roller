@@ -1,0 +1,18 @@
+List Expansion: 2 2 (1.5 * ((d8 + 4) + 2d6))
+  Count: 2 => 2
+  Expression: 2 (1.5 * ((d8 + 4) + 2d6))
+  Results: [[21, 21], [25, 30]]
+  0: 
+    List Expansion: 2 (1.5 * ((d8 + 4) + 2d6))
+      Count: 2 => 2
+      Expression: (1.5 * ((d8 + 4) + 2d6))
+      Results: [21, 21]
+      0: 21.0
+      1: 21.0
+  1: 
+    List Expansion: 2 (1.5 * ((d8 + 4) + 2d6))
+      Count: 2 => 2
+      Expression: (1.5 * ((d8 + 4) + 2d6))
+      Results: [25, 30]
+      0: 25.5
+      1: 30.0

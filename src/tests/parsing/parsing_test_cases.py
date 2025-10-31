@@ -257,4 +257,6 @@ SHOULD_FAIL_CASES = [
 	"3 d 6",  # Spaces in dice
 	"-3d6", # Negative dice. Consider allowing as implicit subtraction from zero.
 	"+4", # leading plus
+	"3,", # single-expr sequence, trailing comma
+	",4", # single-expr sequence, leading comma
 ]

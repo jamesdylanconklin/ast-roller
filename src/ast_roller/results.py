@@ -49,10 +49,7 @@ class SequenceResultNode(StructuralResultNode):
             expr_node = self.expr_result_nodes[expr_node_idx]
             lines.append(f"{(indent + 1) * '  '}Expression {expr_node_idx}: {expr_node.token} => {expr_node.raw_result}")
             prefix = f"{(indent + 1) * '  '}{expr_node_idx}: "
-            if depth > 0:
-                lines.append(f"{prefix}{expr_node.raw_result}")
-            else:
-                lines.append(f"{expr_node.pretty_print(depth + 1, len(prefix) // 2)}")
+            lines.append(f"{expr_node.pretty_print(depth + 1, len(prefix) // 2)}")
 
         return "\n".join(lines)
 

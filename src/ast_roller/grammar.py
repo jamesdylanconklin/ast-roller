@@ -22,9 +22,9 @@ expression: "(" expression ")" -> parens
           | expression OPERATOR_AS expression -> binary_op_as
           | expression OPERATOR_MD expression -> binary_op_md
           | DICE_ROLL -> dice_roll
-          | FLOAT -> float_num
-          | INTEGER -> integer
+          | FLOAT -> float
           | NATURAL_NUM -> natural_num
+          | INTEGER -> integer
 
 DICE_ROLL: /([1-9]\d*)?d([1-9]\d*|[Ff])/i
 OPERATOR_AS: "+" | "-"
@@ -81,7 +81,7 @@ class CalculateTree(Transformer):
         """Transform dice roll."""
         return DiceRollEvaluatorNode(dice_token)
     
-    def float_num(self, token):
+    def float(self, token):
         """Transform float number."""
         return NumberEvaluatorNode(token, 'float')
     

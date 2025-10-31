@@ -10,11 +10,17 @@ Contains test data separated from test logic for easier maintenance.
 #       each run and use snapshot testing between accepted pretty-print output and
 #       tested output
 
-def integer_tree(value):
-    """Helper to create an integer parse tree."""
-    return Tree('integer', [Token('INTEGER', str(value))])
+def number_tree(value):
+    """Helper to create a number parse tree."""
+    num_type = 'integer'
+    if isinstance(value, float):
+        num_type = 'float'
+    elif value > 0:
+        num_type = 'natural_num'
 
-def die_tree(count, sides, capitalize=False):
+    return Tree(num_type, [Token(num_type.upper(), str(value))])
+
+def die_tree(count, sides):
     """Helper to create a dice roll parse tree."""
     count_str = count if count is not None else ''
 
@@ -48,10 +54,12 @@ def parens_tree(inner):
 
 # Basic parsing test cases
 BASIC_PARSING_CASES = {
-    "integers": [
-        ("867", tree_root([integer_tree(867)])),
-        ("-530", tree_root([integer_tree(-530)])),
-        ("9", tree_root([integer_tree(9)]))
+    "numbers": [
+        ("867", tree_root([number_tree(867)])),
+        ("-530", tree_root([number_tree(-530)])),
+        ("9", tree_root([number_tree(9)])),
+        ("3.14", tree_root([number_tree(3.14)])),
+        ("-11", tree_root([number_tree(-11)]))
     ],
 
     "dice_rolls": [
@@ -63,10 +71,10 @@ BASIC_PARSING_CASES = {
     ],
 
     "basic_arithmetic": [
-        ("3+4", tree_root([binary_op_as_tree("+", integer_tree(3), integer_tree(4))])),
-        ("10-2", tree_root([binary_op_as_tree("-", integer_tree(10), integer_tree(2))])),
-        ("5*6", tree_root([binary_op_md_tree("*", integer_tree(5), integer_tree(6))])),
-        ("8/2", tree_root([binary_op_md_tree("/", integer_tree(8), integer_tree(2))])),
+        ("3+4", tree_root([binary_op_as_tree("+", number_tree(3), number_tree(4))])),
+        ("10-2", tree_root([binary_op_as_tree("-", number_tree(10), number_tree(2))])),
+        ("5*6", tree_root([binary_op_md_tree("*", number_tree(5), number_tree(6))])),
+        ("8/2", tree_root([binary_op_md_tree("/", number_tree(8), number_tree(2))])),
     ],
 
     "parentheses": [
@@ -74,31 +82,31 @@ BASIC_PARSING_CASES = {
             parens_tree(
                 binary_op_as_tree(
                     '+',
-                    integer_tree(5),
+                    number_tree(5),
                     parens_tree(
                         binary_op_as_tree(
                             '+',
-                            integer_tree(4),
-                            parens_tree(integer_tree(3))   
+                            number_tree(4),
+                            parens_tree(number_tree(3))   
                             
                         )
                     )
                   )
             ) 
         ])),
-        ("(5)", tree_root([parens_tree(integer_tree(5))])),
-        ("(3+4)", tree_root([parens_tree(binary_op_as_tree('+', integer_tree(3), integer_tree(4)))])),
+        ("(5)", tree_root([parens_tree(number_tree(5))])),
+        ("(3+4)", tree_root([parens_tree(binary_op_as_tree('+', number_tree(3), number_tree(4)))])),
     ]
 }
 
 # List expression test cases
 LIST_EXPRESSION_CASES = [
-    ("3", tree_root([integer_tree(3)])),
-    ("3 4 5", tree_root([integer_tree(3), integer_tree(4), integer_tree(5)])),
+    ("3", tree_root([number_tree(3)])),
+    ("3 4 5", tree_root([number_tree(3), number_tree(4), number_tree(5)])),
     ("d6 d8", tree_root([die_tree(None, 6), die_tree(None, 8)])),
     ("1d4 2d6 3d8", tree_root([die_tree(1, 4), die_tree(2, 6), die_tree(3, 8)])),
-    ("5 2d6", tree_root([integer_tree(5), die_tree(2, 6)])),
-    ("d20 15 3d4", tree_root([die_tree(None, 20), integer_tree(15), die_tree(3, 4)]))
+    ("5 2d6", tree_root([number_tree(5), die_tree(2, 6)])),
+    ("d20 15 3d4", tree_root([die_tree(None, 20), number_tree(15), die_tree(3, 4)]))
 ]
 
 # Operator precedence test cases
@@ -106,48 +114,48 @@ PRECEDENCE_CASES = [
     # Multiplication before addition - should parse as 2+(3*4)
     ("2+3*4", tree_root([
         binary_op_as_tree("+", 
-            integer_tree(2), 
-            binary_op_md_tree("*", integer_tree(3), integer_tree(4))
+            number_tree(2), 
+            binary_op_md_tree("*", number_tree(3), number_tree(4))
         )
     ])),
     
     # Addition after multiplication - should parse as (3*4)+5
-    ("3*4+5", tree_root([
+    ("1.5*4+5", tree_root([
         binary_op_as_tree("+", 
-            binary_op_md_tree("*", integer_tree(3), integer_tree(4)),
-            integer_tree(5)
+            binary_op_md_tree("*", number_tree(1.5), number_tree(4)),
+            number_tree(5)
         )
     ])),
     
     # Division before subtraction - should parse as 10-(6/2)
     ("10-6/2", tree_root([
         binary_op_as_tree("-", 
-            integer_tree(10), 
-            binary_op_md_tree("/", integer_tree(6), integer_tree(2))
+            number_tree(10), 
+            binary_op_md_tree("/", number_tree(6), number_tree(2))
         )
     ])),
     
     # Subtraction after division - should parse as (8/2)-1
     ("8/2-1", tree_root([
         binary_op_as_tree("-", 
-            binary_op_md_tree("/", integer_tree(8), integer_tree(2)),
-            integer_tree(1)
+            binary_op_md_tree("/", number_tree(8), number_tree(2)),
+            number_tree(1)
         )
     ])),
     
     # Parentheses override precedence - should parse as (2+3)*4
     ("(2+3)*4", tree_root([
         binary_op_md_tree("*", 
-            parens_tree(binary_op_as_tree("+", integer_tree(2), integer_tree(3))),
-            integer_tree(4)
+            parens_tree(binary_op_as_tree("+", number_tree(2), number_tree(3))),
+            number_tree(4)
         )
     ])),
     
     # Parentheses override precedence - should parse as 2*(3+4)
     ("2*(3+4)", tree_root([
         binary_op_md_tree("*", 
-            integer_tree(2),
-            parens_tree(binary_op_as_tree("+", integer_tree(3), integer_tree(4)))
+            number_tree(2),
+            parens_tree(binary_op_as_tree("+", number_tree(3), number_tree(4)))
         )
     ])),
 ]
@@ -156,24 +164,24 @@ PRECEDENCE_CASES = [
 COMPLEX_CASES = [
     # Dice with arithmetic
     ("2d6+3", tree_root([
-        binary_op_as_tree("+", die_tree(2, 6), integer_tree(3))
+        binary_op_as_tree("+", die_tree(2, 6), number_tree(3))
     ])),
     ("1d20-5", tree_root([
-        binary_op_as_tree("-", die_tree(1, 20), integer_tree(5))
+        binary_op_as_tree("-", die_tree(1, 20), number_tree(5))
     ])), 
     ("3d4*2", tree_root([
-        binary_op_md_tree("*", die_tree(3, 4), integer_tree(2))
+        binary_op_md_tree("*", die_tree(3, 4), number_tree(2))
     ])),
     ("4d6/2", tree_root([
-        binary_op_md_tree("/", die_tree(4, 6), integer_tree(2))
+        binary_op_md_tree("/", die_tree(4, 6), number_tree(2))
     ])),
     
     # Arithmetic with dice
     ("5+2d8", tree_root([
-        binary_op_as_tree("+", integer_tree(5), die_tree(2, 8))
+        binary_op_as_tree("+", number_tree(5), die_tree(2, 8))
     ])),
     ("10-1d6", tree_root([
-        binary_op_as_tree("-", integer_tree(10), die_tree(1, 6))
+        binary_op_as_tree("-", number_tree(10), die_tree(1, 6))
     ])),
     
     # Multiple dice in expression
@@ -187,14 +195,14 @@ COMPLEX_CASES = [
     # Complex combinations
     ("(2d6+3)*4", tree_root([
         binary_op_md_tree("*", 
-            parens_tree(binary_op_as_tree("+", die_tree(2, 6), integer_tree(3))),
-            integer_tree(4)
+            parens_tree(binary_op_as_tree("+", die_tree(2, 6), number_tree(3))),
+            number_tree(4)
         )
     ])),
     ("1d20+5-2", tree_root([
         binary_op_as_tree("-", 
-            binary_op_as_tree("+", die_tree(1, 20), integer_tree(5)),
-            integer_tree(2)
+            binary_op_as_tree("+", die_tree(1, 20), number_tree(5)),
+            number_tree(2)
         )
     ])),
 ]
@@ -208,12 +216,12 @@ EDGE_CASES = [
     
     # Complex list expressions
     ("6 2d6+3", tree_root([
-        integer_tree(6), 
-        binary_op_as_tree("+", die_tree(2, 6), integer_tree(3))
+        number_tree(6), 
+        binary_op_as_tree("+", die_tree(2, 6), number_tree(3))
     ])),
     ("3 (1d4+2)", tree_root([
-        integer_tree(3), 
-        parens_tree(binary_op_as_tree("+", die_tree(1, 4), integer_tree(2)))
+        number_tree(3), 
+        parens_tree(binary_op_as_tree("+", die_tree(1, 4), number_tree(2)))
     ])),
 ]
 

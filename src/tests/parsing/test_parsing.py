@@ -18,7 +18,7 @@ def assert_trees_equal(actual, expected, input_str,message=""):
 class TestBasicParsing:
     """Test basic parsing of individual expression types."""
 
-    @pytest.mark.parametrize("input_str,expected_tree", BASIC_PARSING_CASES['integers'])
+    @pytest.mark.parametrize("input_str,expected_tree", BASIC_PARSING_CASES['numbers'])
     def test_simple_integer(self, input_str, expected_tree):
         """Test parsing a simple integer."""
 

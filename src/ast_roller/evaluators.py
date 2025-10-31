@@ -144,9 +144,6 @@ class DiceRollEvaluatorNode(EvaluatorNode):
 
             directives[keep_drop][high_low] = count
 
-        if len(directives['keep']) > 1:
-            raise ValueError("Cannot have both keep high and keep low directives")
-
         return directives
     
     def apply_directives(self, rolls):
@@ -166,7 +163,7 @@ class DiceRollEvaluatorNode(EvaluatorNode):
                 for roll in sorted_rolls[:count]:
                     to_drop[roll] += 1
                 left_idx += count
-        # Should only be one of these, but the unpacking and parallels to above is friendlier.
+
         for high_low, count in self.directives['keep'].items():
             if high_low == 'high':
                 for roll in sorted_rolls[right_idx - count : right_idx]:

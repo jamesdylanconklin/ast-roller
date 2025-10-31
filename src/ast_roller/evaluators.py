@@ -24,7 +24,7 @@ class EvaluatorNode(ABC):
 class SequenceEvaluatorNode(EvaluatorNode):
     """Handles sequences of expressions separated by commas."""
 
-    def __init__(self, expr_nodes):
+    def __init__(self, expr_nodes: list[EvaluatorNode]):
         if len(expr_nodes) < 2:
             raise ValueError("SequenceEvaluatorNode requires at least two expressions")
         self.expr_nodes = expr_nodes  # List of EvaluatorNode instances
@@ -35,8 +35,8 @@ class SequenceEvaluatorNode(EvaluatorNode):
 
 class ListEvaluatorNode(EvaluatorNode):
     """Handles list expressions - space-separated values with potential repetition."""
-    
-    def __init__(self, count_expr_node, loop_expr_node):
+
+    def __init__(self, count_expr_node: EvaluatorNode, loop_expr_node: EvaluatorNode):
         self.count_expr_node = count_expr_node
         self.loop_expr_node = loop_expr_node
     
@@ -70,8 +70,8 @@ class ListEvaluatorNode(EvaluatorNode):
 
 class BinaryOpEvaluatorNode(EvaluatorNode):
     """Handles arithmetic operations (+, -, *, /)."""
-    
-    def __init__(self, left, operator, right):
+
+    def __init__(self, left: EvaluatorNode, operator: str, right: EvaluatorNode):
         if operator not in ['+', '-', '*', '/']:
             raise ValueError(f"Unknown binary operator: {operator}")
         
@@ -100,8 +100,8 @@ class BinaryOpEvaluatorNode(EvaluatorNode):
 
 class DiceRollEvaluatorNode(EvaluatorNode):
     """Handles dice roll expressions like '3d6' or 'd20'."""
-    
-    def __init__(self, dice_token, directives=[]):
+
+    def __init__(self, dice_token: str, directives: list[str] = []):
         self.dice_token = str(dice_token)
         self.directive_tokens = [str(d) for d in directives]
         self.directives = self.parse_directives() 
@@ -114,9 +114,6 @@ class DiceRollEvaluatorNode(EvaluatorNode):
         count_str, sides_str = match.groups()
         self.num_dice = int(count_str) if count_str else 1
 
-        if self.num_dice <= 0:
-            raise ValueError(f"Number of dice must be positive, got {self.num_dice}")
-        
         if sides_str.lower() == 'f':
             self.random_lower = -1
             self.random_upper = 1
@@ -124,13 +121,23 @@ class DiceRollEvaluatorNode(EvaluatorNode):
             self.random_lower = 1
             self.random_upper = int(sides_str)
 
+        self.validate()
+
+    def validate(self) -> None:
+        if self.num_dice <= 0:
+            raise ValueError(f"Number of dice must be positive, got {self.num_dice}")
+
+        if sum([*self.directives['keep'].values(), *self.directives['drop'].values()]) > self.num_dice:
+            raise ValueError("Total number of dice to keep/drop exceeds number of dice rolled")
+        
         if self.random_lower == self.random_upper:
             raise ValueError(f"Die must have more than one side, got {self.random_upper}")
 
-    def combined_token(self):
+
+    def combined_token(self) -> str:
         return f"{' '.join([self.dice_token, *self.directive_tokens])}"
 
-    def parse_directives(self):
+    def parse_directives(self) -> dict[str, dict[str, int]]:
         directives = { 'drop': {}, 'keep': {} }
         directive_pattern = re.compile(r'^(?P<keep_drop>[kd])(?P<high_low>[hl])(?P<count>\d+)')
 
@@ -145,8 +152,8 @@ class DiceRollEvaluatorNode(EvaluatorNode):
             directives[keep_drop][high_low] = count
 
         return directives
-    
-    def apply_directives(self, rolls):
+
+    def apply_directives(self, rolls: list[int]) -> tuple[int, dict[int, int], dict[int, int]]:
         to_keep, to_drop = defaultdict(int), defaultdict(int)
 
         sorted_rolls = sorted(rolls)
@@ -190,7 +197,7 @@ class DiceRollEvaluatorNode(EvaluatorNode):
 class NumberEvaluatorNode(EvaluatorNode):
     """Handles numeric literals (integers, floats, natural numbers)."""
     
-    def __init__(self, number_token, number_type):
+    def __init__(self, number_token: str, number_type: str):
         self.number_token = number_token
         self.number_type = number_type  # 'integer', 'float', 'natural_num'
     

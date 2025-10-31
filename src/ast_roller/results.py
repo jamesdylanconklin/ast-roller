@@ -11,10 +11,9 @@ class ResultNode:
     Stores the computed result and provides interface for pretty printing.
     """
 
-    def __init__(self, raw_result, token, children=None):
+    def __init__(self, raw_result: int | list[int], token: str):
         self.raw_result = raw_result
         self.token = token
-        self.children = children or {}
 
     # TODO: The initial thought was that traversing would support
     # pretty-printing results. However, I think we need a desired
@@ -27,7 +26,8 @@ class ResultNode:
     #     pass
 
     @abstractmethod
-    def pretty_print(self, depth, indent):
+    # TODO: Find a use for depth or nix it.
+    def pretty_print(self, depth: int, indent) -> str:
         pass
 
 class StructuralResultNode(ResultNode):
@@ -36,10 +36,10 @@ class StructuralResultNode(ResultNode):
     pass
 
 class SequenceResultNode(StructuralResultNode):
-    def __init__(self, expr_result_nodes):
+    def __init__(self, expr_result_nodes: list[ResultNode]):
         raw_result = [node.raw_result for node in expr_result_nodes]
         token = ', '.join(node.token for node in expr_result_nodes)
-        super().__init__(raw_result, token, {'expr_results': expr_result_nodes})
+        super().__init__(raw_result, token)
         self.expr_result_nodes = expr_result_nodes
 
     def pretty_print(self, depth=0, indent=0):
@@ -56,14 +56,14 @@ class SequenceResultNode(StructuralResultNode):
 
 
 class ListResultNode(StructuralResultNode):
-    def __init__(self, count_result_node, expr_result_nodes, raw_result):
+    def __init__(self, count_result_node: ResultNode, expr_result_nodes: list[ResultNode], raw_result: int | list[int]):
         self.count_result_node = count_result_node
         self.expr_result_nodes = expr_result_nodes
         token = f'{count_result_node.token} {self.expr_result_token()}'
-        super().__init__(raw_result, token, {'count': count_result_node, 'expr_results': expr_result_nodes})
+        super().__init__(raw_result, token)
 
     # In cases where count is zero, we never eval the expr node into a result.
-    def expr_result_token(self):
+    def expr_result_token(self) -> str:
         if len(self.expr_result_nodes) > 0:
             return self.expr_result_nodes[0].token
         
@@ -106,9 +106,9 @@ class ListResultNode(StructuralResultNode):
 class BinaryOpResultNode(StructuralResultNode):
     """Result node for binary operations."""
 
-    def __init__(self, operator, left_node, right_node, raw_result):
+    def __init__(self, operator: str, left_node: ResultNode, right_node: ResultNode, raw_result: int | float):
         token = f"({left_node.token} {operator} {right_node.token})"
-        super().__init__(raw_result, token, {'left': left_node, 'right': right_node})
+        super().__init__(raw_result, token)
         self.left = left_node
         self.right = right_node
         self.operator = operator
@@ -162,13 +162,13 @@ class LeafResultNode(ResultNode):
 
 class DiceResultNode(LeafResultNode):
     """Result node for dice rolls, storing individual die results."""
-    def __init__(self, roll_string, raw_result, die_results, to_keep={}, to_drop={}):
+    def __init__(self, roll_string: str, raw_result: int, die_results: list[int], to_keep: dict[int, int] = {}, to_drop: dict[int, int] = {}):
         super().__init__(raw_result, token=roll_string)
         self.die_results = die_results  # List of individual die roll results
         self.to_keep = to_keep
         self.to_drop = to_drop
 
-    def format_die_results(self):
+    def format_die_results(self) -> str:
         dropped, kept = defaultdict(int), defaultdict(int)
 
         green_start = '\033[92m'
@@ -197,7 +197,7 @@ class DiceResultNode(LeafResultNode):
 class NumberResultNode(LeafResultNode):
     """Result node for numeric values."""
 
-    def __init__(self, raw_result):
+    def __init__(self, raw_result: int | float):
         super().__init__(raw_result, token=f"{raw_result}")
 
     def pretty_print(self, _, indent):

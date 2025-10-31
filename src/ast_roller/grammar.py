@@ -68,7 +68,7 @@ class CalculateTree(Transformer):
         return SequenceEvaluatorNode(expr_nodes)
     
     def list_expression(self, *args):
-        """Transform list expression - either single or count+loop."""
+        """Transform list expression - either single or count + loop."""
         if len(args) == 1:
             # Single expression
             return args[0]
@@ -87,7 +87,6 @@ class CalculateTree(Transformer):
     binary_op_md = binary_op_as
     
     def dice_roll(self, dice_token, directives):
-        """Transform dice roll."""
         return DiceRollEvaluatorNode(dice_token, directives.children)
     
     def float(self, token):
@@ -97,7 +96,6 @@ class CalculateTree(Transformer):
         return NumberEvaluatorNode(token, 'integer')
     
     def natural_num(self, token):
-        """Transform natural number."""
         return NumberEvaluatorNode(token, 'natural_num')
 
 

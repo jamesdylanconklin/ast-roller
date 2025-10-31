@@ -3,4 +3,4 @@ List Expansion: 1 (d20 kh1 + 5)
   Expression: (d20 kh1 + 5)
   Results: 17
   0: 
-    (d20 kh1 + 5) => ([12] + 5) => 12 + 5 = 17
+    (d20 kh1 + 5) => ([[92m12[0m] + 5) => 12 + 5 = 17

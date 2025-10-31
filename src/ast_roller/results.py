@@ -121,8 +121,8 @@ class BinaryOpResultNode(StructuralResultNode):
         # If dice, use die_results. 
         if hasattr(self.left, 'dice_expansion'):
             left_expansion = self.left.dice_expansion()
-        elif hasattr(self.left, 'die_results'):
-            left_expansion = f"{self.left.die_results}"
+        elif hasattr(self.left, 'format_die_results'):
+            left_expansion = f"{self.left.format_die_results()}"
 
         right_expansion = self.right.token
         if hasattr(self.right, 'dice_expansion'):

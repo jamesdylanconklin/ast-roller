@@ -24,6 +24,8 @@ class SequenceEvaluatorNode(EvaluatorNode):
     """Handles sequences of expressions separated by commas."""
 
     def __init__(self, expr_nodes):
+        if len(expr_nodes) < 2:
+            raise ValueError("SequenceEvaluatorNode requires at least two expressions")
         self.expr_nodes = expr_nodes  # List of EvaluatorNode instances
 
     def evaluate(self) -> ListResultNode:

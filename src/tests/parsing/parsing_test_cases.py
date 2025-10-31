@@ -81,6 +81,8 @@ BASIC_PARSING_CASES = {
 	  ("1d20", tree_root([die_tree(1, 20)])),
 	  ("dF", tree_root([die_tree(None, 'F')])),
 	  ("4df", tree_root([die_tree(4, 'f')])),
+		("4d6 dl1", tree_root([die_tree(4, 6, directives=['dl1'])])),
+		("10d100 dh2 dl2 kh1 kl1", tree_root([die_tree(10, 100, directives=['dh2', 'dl2', 'kh1', 'kl1'])]))
 	],
 
 	"basic_arithmetic": [

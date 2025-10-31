@@ -7,7 +7,8 @@ from .evaluators import (
     ListEvaluatorNode, 
     BinaryOpEvaluatorNode, 
     DiceRollEvaluatorNode, 
-    NumberEvaluatorNode
+    NumberEvaluatorNode,
+    SequenceEvaluatorNode
 )
 
 # Lark grammar definition
@@ -16,8 +17,9 @@ from .evaluators import (
 # TODO: Support comma separated expression sequences
 
 GRAMMAR = """
-start: list_expression -> root_result
-list_expression: expression | expression LIST_SEP list_expression -> list_expression
+start: (list_expression | sequence_expression)
+sequence_expression: list_expression (SEQUENCE_SEP list_expression)+
+list_expression: (expression | expression LIST_SEP list_expression)
 expression: "(" expression ")" -> parens
           | expression OPERATOR_AS expression -> binary_op_as
           | expression OPERATOR_MD expression -> binary_op_md
@@ -33,6 +35,7 @@ FLOAT: /-?\d*\.\d+/
 INTEGER: /-?\d+/
 NATURAL_NUM: /[1-9]\d*/
 LIST_SEP: /\s+/
+SEQUENCE_SEP: /,\s*/
 
 %import common.WS_INLINE
 %ignore WS_INLINE  # Only ignore inline whitespace in expressions
@@ -48,14 +51,15 @@ class CalculateTree(Transformer):
     Transforms the parse tree into an evaluable structure.
     """
     
-    def root_result(self, child):
-        """Transform root expression."""
-        # We pruned single-element list results. 
-        # We actually want one at the root.
-        if isinstance(child, ListEvaluatorNode):
-            return child
+    def start(self, child):
+        return child
 
-        return ListEvaluatorNode(None, child)
+    def sequence_expression(self, *args):
+        """Transform sequence expression - comma-separated expressions."""
+        # Ignore the separator tokens.
+        expr_nodes = [arg for arg in args if hasattr(arg, 'evaluate')]
+
+        return SequenceEvaluatorNode(expr_nodes)
     
     def list_expression(self, *args):
         """Transform list expression - either single or count+loop."""
@@ -63,9 +67,9 @@ class CalculateTree(Transformer):
             # Single expression
             return args[0]
         else:
-            # Count + loop expression (args[1] is LIST_SEP token, args[2] is loop expr)
+            # args should be count_expr, sep_token, loop_expr. Ignore the middle.
             return ListEvaluatorNode(args[0], args[2])
-    
+
     def parens(self, inner):
         """Transform parentheses - just return inner expression (prune)."""
         return inner

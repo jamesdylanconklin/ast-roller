@@ -8,21 +8,24 @@ version = "0.0.1"
 authors = [
   { name="James Conklin", email="jamesdylanconklin@gmail.com" },
 ]
-description = "A small example package"
+description = "Expressive AST-based dice roller"
 
 dependencies = [
     "lark==1.1.9"
 ]
 
-# readme = "README.md"
+readme = "README.md"
 requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
 
-# license = "MIT"
-# license-files = ["LICEN[CS]E*"]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.scripts]
+ast_roller = "ast_roller.main:main"
 
 [project.urls]
 Homepage = "https://github.com/jamesdylanconklin/ast-roller"

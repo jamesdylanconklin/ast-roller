@@ -5,7 +5,7 @@ Includes snapshot testing for consistent output verification.
 
 import pytest
 import random
-from output_test_cases import SNAPSHOT_CASES
+from results_test_cases import SNAPSHOT_CASES
 from ast_roller.grammar import parser, transformer
 from pathlib import Path
 

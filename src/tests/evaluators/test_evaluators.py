@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, call, Mock
 
 from ast_roller.evaluators import DiceRollEvaluatorNode, NumberEvaluatorNode, BinaryOpEvaluatorNode, ListEvaluatorNode, SequenceEvaluatorNode
-from eval_test_cases import DICE_ROLL_CASES, NUMBER_EVALUATOR_CASES, BINARY_OP_CASES, LIST_EVALUATOR_CASES, SEQUENCE_EVALUATOR_CASES, DummyEvalNode
+from evaluators_test_cases import DICE_ROLL_CASES, NUMBER_EVALUATOR_CASES, BINARY_OP_CASES, LIST_EVALUATOR_CASES, SEQUENCE_EVALUATOR_CASES, DummyEvalNode
 
 mock_random_fn = lambda _, max_val: max_val  # Always return max for testing
 

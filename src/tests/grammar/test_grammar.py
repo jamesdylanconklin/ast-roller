@@ -7,7 +7,7 @@ from lark import Lark
 from lark.exceptions import LarkError
 
 from ast_roller.grammar import parser
-from parsing_test_cases import BASIC_PARSING_CASES, COMPLEX_CASES, PRECEDENCE_CASES, LIST_EXPRESSION_CASES, SHOULD_FAIL_CASES, EDGE_CASES, SEQUENCE_EXPRESSION_CASES
+from grammar_test_cases import BASIC_PARSING_CASES, COMPLEX_CASES, PRECEDENCE_CASES, LIST_EXPRESSION_CASES, SHOULD_FAIL_CASES, EDGE_CASES, SEQUENCE_EXPRESSION_CASES
 
 def assert_trees_equal(actual, expected, input_str,message=""):
 	if actual != expected:

@@ -53,4 +53,4 @@ Contributions are welcome and should be pretty manageable. New roll features can
 
 Code changes must be accompanied by new or reconciled spec code in `src/tests`. 
 
-If anyone has thoughts as to better output formats, feel free to open issues suggesting to suggest changes.
+I feel lukewarm at best about the current output formats so if anyone has better ideas, I'd love an issue suggesting the changes.

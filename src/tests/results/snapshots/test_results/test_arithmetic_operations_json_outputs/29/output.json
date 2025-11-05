@@ -1,0 +1,1 @@
+{"token": "1 29", "node_type": "ListResultNode", "result": 29, "children": {"count_expression": {"token": "1", "node_type": "NumberResultNode", "result": 1, "children": {}, "meta": {}}, "loop_expression": [{"token": "29", "node_type": "NumberResultNode", "result": 29, "children": {}, "meta": {}}]}, "meta": {}}

@@ -1,0 +1,1 @@
+{"token": "1 1d6", "node_type": "ListResultNode", "result": 3, "children": {"count_expression": {"token": "1", "node_type": "NumberResultNode", "result": 1, "children": {}, "meta": {}}, "loop_expression": [{"token": "1d6", "node_type": "DiceResultNode", "result": 3, "children": {}, "meta": {"die_results": [3], "to_keep": {}, "to_drop": {}}}]}, "meta": {}}

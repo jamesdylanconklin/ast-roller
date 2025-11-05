@@ -1,0 +1,1 @@
+{"token": "1 4dF", "node_type": "ListResultNode", "result": 0, "children": {"count_expression": {"token": "1", "node_type": "NumberResultNode", "result": 1, "children": {}, "meta": {}}, "loop_expression": [{"token": "4dF", "node_type": "DiceResultNode", "result": 0, "children": {}, "meta": {"die_results": [1, -1, -1, 1], "to_keep": {}, "to_drop": {}}}]}, "meta": {}}

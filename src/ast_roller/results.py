@@ -2,6 +2,7 @@
 Result node classes for the dice rolling evaluation system.
 """
 
+import json
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
@@ -25,6 +26,27 @@ class ResultNode:
     # def traverse(self):
     #     pass
 
+    def to_dict(self) -> dict:
+        """
+        Convert the result node to dictionary representation.
+        Returns a dictionary with the node's structure that can be serialized to JSON.
+        Subclasses should override this to add children and meta information.
+        """
+        return {
+            "token": self.token,
+            "node_type": type(self).__name__,
+            "result": self.raw_result,
+            "children": {},
+            "meta": {}
+        }
+    
+    def to_json(self) -> str:
+        """
+        Convert the result node to JSON string representation.
+        Builds the complete tree structure and then serializes to JSON.
+        """
+        return json.dumps(self.to_dict())
+
     @abstractmethod
     # TODO: Find a use for depth or nix it.
     def pretty_print(self, depth: int, indent) -> str:
@@ -41,6 +63,13 @@ class SequenceResultNode(StructuralResultNode):
         token = ', '.join(node.token for node in expr_result_nodes)
         super().__init__(raw_result, token)
         self.expr_result_nodes = expr_result_nodes
+
+    def to_dict(self) -> dict:
+        result_dict = super().to_dict()
+        result_dict["children"] = {
+            "sequence": [node.to_dict() for node in self.expr_result_nodes]
+        }
+        return result_dict
 
     def pretty_print(self, depth=0, indent=0):
         lines = []
@@ -61,6 +90,14 @@ class ListResultNode(StructuralResultNode):
         self.expr_result_nodes = expr_result_nodes
         token = f'{count_result_node.token} {self.expr_result_token()}'
         super().__init__(raw_result, token)
+
+    def to_dict(self) -> dict:
+        result_dict = super().to_dict()
+        result_dict["children"] = {
+            "count_expression": self.count_result_node.to_dict(),
+            "loop_expression": [node.to_dict() for node in self.expr_result_nodes]
+        }
+        return result_dict
 
     # In cases where count is zero, we never eval the expr node into a result.
     def expr_result_token(self) -> str:
@@ -112,6 +149,17 @@ class BinaryOpResultNode(StructuralResultNode):
         self.left = left_node
         self.right = right_node
         self.operator = operator
+
+    def to_dict(self) -> dict:
+        result_dict = super().to_dict()
+        result_dict["children"] = {
+            "left": self.left.to_dict(),
+            "right": self.right.to_dict()
+        }
+        result_dict["meta"] = {
+            "operator": self.operator
+        }
+        return result_dict
 
     def dice_expansion(self):
         left_expansion = self.left.token
@@ -167,6 +215,15 @@ class DiceResultNode(LeafResultNode):
         self.die_results = die_results  # List of individual die roll results
         self.to_keep = to_keep
         self.to_drop = to_drop
+
+    def to_dict(self) -> dict:
+        result_dict = super().to_dict()
+        result_dict["meta"] = {
+            "die_results": self.die_results,
+            "to_keep": self.to_keep,
+            "to_drop": self.to_drop
+        }
+        return result_dict
 
     def format_die_results(self) -> str:
         dropped, kept = defaultdict(int), defaultdict(int)

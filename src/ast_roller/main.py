@@ -5,6 +5,7 @@ from ast_roller.grammar import parser, transformer
 def main():
     opt_parser = optparse.OptionParser()
     opt_parser.add_option('-v', dest='verbose', action='store_true')
+    opt_parser.add_option('-j', dest='json', action='store_true')
     opts, args = opt_parser.parse_args()
 
     roll_string = " ".join(args) if args else '1d20'
@@ -14,7 +15,9 @@ def main():
         eval_tree = transformer.transform(parse_tree)
         result_tree = eval_tree.evaluate()
 
-        if opts.verbose:
+        if opts.json:
+            print(result_tree.to_json(indent=2))
+        elif opts.verbose:
             print(result_tree.pretty_print())
         else:
             print(result_tree.raw_result)

@@ -40,12 +40,12 @@ class ResultNode:
             "meta": {}
         }
     
-    def to_json(self) -> str:
+    def to_json(self, indent=None) -> str:
         """
         Convert the result node to JSON string representation.
         Builds the complete tree structure and then serializes to JSON.
         """
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), indent=indent)
 
     @abstractmethod
     # TODO: Find a use for depth or nix it.
